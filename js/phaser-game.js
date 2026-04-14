@@ -1446,11 +1446,8 @@ function startPhaserGame(character, emotion, characterName = '', emotionName = '
     parent: 'phaser-container',
     backgroundColor: '#1a1a2e',
     scale: {
-      mode: Phaser.Scale.FIT,        // 自动缩放适应容器
-      autoCenter: Phaser.Scale.CENTER_BOTH,  // 居中显示
-      width: 800,
-      height: 400,
-      parent: 'phaser-container'
+      mode: Phaser.Scale.FIT,
+      autoCenter: Phaser.Scale.CENTER_BOTH
     },
     physics: {
       default: 'arcade',
@@ -1459,7 +1456,7 @@ function startPhaserGame(character, emotion, characterName = '', emotionName = '
         gravity: { y: 0 }
       }
     },
-    scene: [BattleScene]  // 注册场景但不自动启动
+    scene: [BattleScene]
   };
 
   phaserGame = new Phaser.Game(config);
