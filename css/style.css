@@ -826,7 +826,7 @@ canvas,
 
 #page-battle .battle-container {
   width: 100%;
-  height: 100%;
+  height: 100vh;
   display: flex;
   flex-direction: column;
 }
@@ -834,27 +834,29 @@ canvas,
 /* Phaser游戏容器 - 响应式 */
 #phaser-container {
   width: 100%;
-  flex: 1;
+  height: 60vh;           /* 给容器明确的视口高度 */
+  max-height: 400px;      /* 最大高度限制 */
   min-height: 200px;
   display: flex;
   justify-content: center;
   align-items: center;
   overflow: hidden;
+  background: var(--color-bg-secondary);
 }
 
 #phaser-container canvas {
   display: block;
-  max-width: 100%;
-  max-height: 100%;
+  object-fit: contain;
 }
 
 /* 手机端战斗画布优化 */
-@media (max-width: 480px) {
+@media (max-width: 600px) {
   #phaser-container {
+    height: 50vh;
+    max-height: 300px;
     min-height: 180px;
   }
 
-  /* 手机端战斗UI紧凑布局 */
   .battle-ui {
     padding: var(--spacing-sm);
   }
@@ -869,8 +871,9 @@ canvas,
   }
 }
 
-@media (max-width: 360px) {
+@media (max-width: 400px) {
   #phaser-container {
+    height: 45vh;
     min-height: 160px;
   }
 }
