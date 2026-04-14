@@ -43,14 +43,8 @@
           <button class="btn btn-secondary" onclick="showPage('stats')">
             <span class="btn-text">📊 战斗统计</span>
           </button>
-          <button class="btn btn-secondary" onclick="showPage('calendar')">
-            <span class="btn-text">📅 战斗日历</span>
-          </button>
           <button class="btn btn-secondary" onclick="showPage('settings')">
             <span class="btn-text">⚙️ 游戏设置</span>
-          </button>
-          <button class="btn btn-secondary" onclick="showPage('history')">
-            <span class="btn-text">📜 查看历史</span>
           </button>
           <button class="btn btn-secondary" onclick="showPage('achievements')">
             <span class="btn-text">🏆 成就展示</span>
@@ -66,34 +60,30 @@
       </header>
 
       <main class="page-content">
-        <!-- 下拉选择器独立行 -->
-        <div class="selectors-standalone-row">
+        <!-- 选择器区域（方块选择形式） -->
+        <div class="selectors-block-row">
           <!-- 角色选择器组 -->
-          <div class="selector-group">
+          <div class="selector-block-group">
             <div class="selector-label">你的角色</div>
-            <div class="selector-dropdowns-inline">
-              <!-- 性别下拉 -->
-              <div class="custom-dropdown" id="gender-dropdown">
-                <div class="dropdown-trigger" onclick="toggleDropdown('gender-dropdown')">
-                  <span class="dropdown-value">男性</span>
-                  <span class="dropdown-arrow">▼</span>
-                </div>
-                <div class="dropdown-menu">
-                  <div class="dropdown-option selected" data-value="male" onclick="selectDropdownOption('gender-dropdown', 'male', '男性')">男性</div>
-                  <div class="dropdown-option" data-value="female" onclick="selectDropdownOption('gender-dropdown', 'female', '女性')">女性</div>
-                </div>
+            <!-- 性别方块选择 -->
+            <div class="block-selector-row">
+              <div class="block-option selected" data-value="male" onclick="selectBlockOption('gender', 'male', '男性')">
+                <span class="block-option-text">男性</span>
               </div>
-              <!-- 服装下拉 -->
-              <div class="custom-dropdown" id="style-dropdown">
-                <div class="dropdown-trigger" onclick="toggleDropdown('style-dropdown')">
-                  <span class="dropdown-value">休闲</span>
-                  <span class="dropdown-arrow">▼</span>
-                </div>
-                <div class="dropdown-menu">
-                  <div class="dropdown-option selected" data-value="young" onclick="selectDropdownOption('style-dropdown', 'young', '休闲')">休闲</div>
-                  <div class="dropdown-option" data-value="student" onclick="selectDropdownOption('style-dropdown', 'student', '校服')">校服</div>
-                  <div class="dropdown-option" data-value="worker" onclick="selectDropdownOption('style-dropdown', 'worker', '西装')">西装</div>
-                </div>
+              <div class="block-option" data-value="female" onclick="selectBlockOption('gender', 'female', '女性')">
+                <span class="block-option-text">女性</span>
+              </div>
+            </div>
+            <!-- 服装方块选择 -->
+            <div class="block-selector-row">
+              <div class="block-option selected" data-value="young" onclick="selectBlockOption('style', 'young', '休闲')">
+                <span class="block-option-text">休闲</span>
+              </div>
+              <div class="block-option" data-value="student" onclick="selectBlockOption('style', 'student', '校服')">
+                <span class="block-option-text">校服</span>
+              </div>
+              <div class="block-option" data-value="worker" onclick="selectBlockOption('style', 'worker', '西装')">
+                <span class="block-option-text">西装</span>
               </div>
             </div>
           </div>
@@ -102,22 +92,24 @@
           <div class="vs-badge">VS</div>
 
           <!-- 情绪选择器组 -->
-          <div class="selector-group">
+          <div class="selector-block-group">
             <div class="selector-label">对手情绪</div>
-            <div class="selector-dropdowns-inline">
-              <!-- 情绪下拉 -->
-              <div class="custom-dropdown" id="emotion-dropdown">
-                <div class="dropdown-trigger" onclick="toggleDropdown('emotion-dropdown')">
-                  <span class="dropdown-value">沮丧</span>
-                  <span class="dropdown-arrow">▼</span>
-                </div>
-                <div class="dropdown-menu">
-                  <div class="dropdown-option selected" data-value="sadness" onclick="selectDropdownOption('emotion-dropdown', 'sadness', '沮丧')">沮丧</div>
-                  <div class="dropdown-option" data-value="fear" onclick="selectDropdownOption('emotion-dropdown', 'fear', '恐惧')">恐惧</div>
-                  <div class="dropdown-option" data-value="anger" onclick="selectDropdownOption('emotion-dropdown', 'anger', '愤怒')">愤怒</div>
-                  <div class="dropdown-option" data-value="jealousy" onclick="selectDropdownOption('emotion-dropdown', 'jealousy', '嫉妒')">嫉妒</div>
-                  <div class="dropdown-option" data-value="anxiety" onclick="selectDropdownOption('emotion-dropdown', 'anxiety', '焦虑')">焦虑</div>
-                </div>
+            <!-- 情绪方块选择 -->
+            <div class="block-selector-row emotion-blocks">
+              <div class="block-option selected" data-value="sadness" onclick="selectBlockOption('emotion', 'sadness', '沮丧')">
+                <span class="block-option-text">沮丧</span>
+              </div>
+              <div class="block-option" data-value="fear" onclick="selectBlockOption('emotion', 'fear', '恐惧')">
+                <span class="block-option-text">恐惧</span>
+              </div>
+              <div class="block-option" data-value="anger" onclick="selectBlockOption('emotion', 'anger', '愤怒')">
+                <span class="block-option-text">愤怒</span>
+              </div>
+              <div class="block-option" data-value="jealousy" onclick="selectBlockOption('emotion', 'jealousy', '嫉妒')">
+                <span class="block-option-text">嫉妒</span>
+              </div>
+              <div class="block-option" data-value="anxiety" onclick="selectBlockOption('emotion', 'anxiety', '焦虑')">
+                <span class="block-option-text">焦虑</span>
               </div>
             </div>
           </div>
@@ -177,16 +169,16 @@
           </header>
 
           <div class="battle-actions">
-            <!-- 3个按钮：一行布局 -->
+            <!-- 3个按钮：一行布局（顺序：大招、逃跑、点击攻击） -->
             <nav class="btn-grid btn-grid-3">
-              <button class="btn btn-attack" id="attack-btn" onclick="handleAttackClick()" aria-label="点击攻击">
-                <span class="btn-text">👆 点击攻击</span>
-              </button>
               <button class="btn btn-ultimate" id="ultimate-btn" onclick="useUltimate()" aria-label="使用大招">
                 <span class="btn-text">⚡ 大招</span>
               </button>
               <button class="btn btn-escape" onclick="escapeBattle()" aria-label="逃跑">
                 <span class="btn-text">🏃 逃跑</span>
+              </button>
+              <button class="btn btn-attack" id="attack-btn" onclick="handleAttackClick()" aria-label="点击攻击">
+                <span class="btn-text">👆 点击攻击</span>
               </button>
             </nav>
           </div>
@@ -230,15 +222,12 @@
 
       <footer class="page-footer">
         <!-- 4个按钮：两行布局 -->
-        <nav class="btn-grid btn-grid-4" aria-label="结算后操作">
+        <nav class="btn-grid btn-grid-3" aria-label="结算后操作">
           <button class="btn btn-breathing" onclick="showPage('breathing')">
             <span class="btn-text">🌬️ 呼吸练习</span>
           </button>
           <button class="btn btn-primary" onclick="showPage('select')">
             <span class="btn-text">🔄 再来一局</span>
-          </button>
-          <button class="btn btn-secondary" onclick="showPage('history')">
-            <span class="btn-text">📜 查看历史</span>
           </button>
           <button class="btn btn-back" onclick="showPage('home')">
             <span class="btn-text">🏠 返回首页</span>
@@ -322,32 +311,6 @@
       </footer>
     </section>
 
-    <!-- ========== 历史记录界面 ========== -->
-    <section id="page-history" class="page" aria-labelledby="history-title">
-      <header class="page-header">
-        <h2 id="history-title" class="page-title">战斗记录</h2>
-      </header>
-
-      <main class="page-content scrollable">
-        <div id="history-list" class="history-list" role="list" aria-live="polite">
-          <!-- 动态填充 -->
-        </div>
-
-        <aside class="warning-box small" role="note">
-          <p>浏览器清理缓存可能导致数据丢失，建议定期截图保存重要记录</p>
-        </aside>
-      </main>
-
-      <footer class="page-footer">
-        <!-- 1个按钮：居中布局 -->
-        <nav class="btn-grid btn-grid-1">
-          <button class="btn btn-back" onclick="showPage('home')">
-            <span class="btn-text">← 返回首页</span>
-          </button>
-        </nav>
-      </footer>
-    </section>
-
     <!-- ========== 成就界面 ========== -->
     <section id="page-achievements" class="page" aria-labelledby="achievements-title">
       <header class="page-header">
@@ -418,50 +381,7 @@
       </main>
 
       <footer class="page-footer">
-        <nav class="btn-grid btn-grid-2">
-          <button class="btn btn-secondary" onclick="showPage('calendar')">
-            <span class="btn-text">📅 查看日历</span>
-          </button>
-          <button class="btn btn-back" onclick="showPage('home')">
-            <span class="btn-text">← 返回首页</span>
-          </button>
-        </nav>
-      </footer>
-    </section>
-
-    <!-- ========== 日历界面 ========== -->
-    <section id="page-calendar" class="page" aria-labelledby="calendar-title">
-      <header class="page-header">
-        <h2 id="calendar-title" class="page-title">战斗日历</h2>
-      </header>
-
-      <main class="page-content">
-        <!-- 月份导航 -->
-        <div class="calendar-nav">
-          <button class="btn btn-small btn-secondary" onclick="prevMonth()">◀ 上月</button>
-          <span id="calendar-month-label" class="month-label">2026年4月</span>
-          <button class="btn btn-small btn-secondary" onclick="nextMonth()">下月 ▶</button>
-        </div>
-
-        <!-- 日历网格 -->
-        <div id="calendar-grid" class="calendar-grid">
-          <!-- 动态填充 -->
-        </div>
-
-        <!-- 当日战斗记录 -->
-        <div id="day-battles" class="day-battles">
-          <h3 id="day-battles-title" class="section-label">选择日期查看记录</h3>
-          <div id="day-battles-list" class="day-battles-list">
-            <!-- 动态填充 -->
-          </div>
-        </div>
-      </main>
-
-      <footer class="page-footer">
-        <nav class="btn-grid btn-grid-2">
-          <button class="btn btn-secondary" onclick="showPage('stats')">
-            <span class="btn-text">📊 查看统计</span>
-          </button>
+        <nav class="btn-grid btn-grid-1">
           <button class="btn btn-back" onclick="showPage('home')">
             <span class="btn-text">← 返回首页</span>
           </button>

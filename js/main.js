@@ -137,7 +137,7 @@ function switchCharacterTab(tabId) {
 }
 
 /**
- * 初始化选择页面（新布局）
+ * 初始化选择页面（方块选择布局）
  */
 function initSelectPage() {
   // 加载保存的选择
@@ -150,37 +150,52 @@ function initSelectPage() {
   selectedGender = gender;
   selectedStyle = style;
 
-  // 更新下拉组件的显示值
-  const genderDropdown = document.getElementById('gender-dropdown');
-  if (genderDropdown) {
-    const genderLabel = gender === 'male' ? '男性' : '女性';
-    genderDropdown.querySelector('.dropdown-value').textContent = genderLabel;
-    genderDropdown.querySelectorAll('.dropdown-option').forEach(opt => {
-      opt.classList.toggle('selected', opt.dataset.value === gender);
-    });
-  }
-
-  const styleDropdown = document.getElementById('style-dropdown');
-  if (styleDropdown) {
-    const styleLabels = { 'young': '休闲', 'student': '校服', 'worker': '西装' };
-    styleDropdown.querySelector('.dropdown-value').textContent = styleLabels[style];
-    styleDropdown.querySelectorAll('.dropdown-option').forEach(opt => {
-      opt.classList.toggle('selected', opt.dataset.value === style);
-    });
-  }
-
-  const emotionDropdown = document.getElementById('emotion-dropdown');
-  if (emotionDropdown) {
-    const emotionLabels = { 'sadness': '沮丧', 'fear': '恐惧', 'anger': '愤怒', 'jealousy': '嫉妒', 'anxiety': '焦虑' };
-    emotionDropdown.querySelector('.dropdown-value').textContent = emotionLabels[selectedEmotion];
-    emotionDropdown.querySelectorAll('.dropdown-option').forEach(opt => {
-      opt.classList.toggle('selected', opt.dataset.value === selectedEmotion);
-    });
-  }
+  // 更新方块选择器的选中状态
+  updateBlockSelectorState('gender', gender);
+  updateBlockSelectorState('style', style);
+  updateBlockSelectorState('emotion', selectedEmotion);
 
   // 绘制预览
   drawLargeCharacterPreview();
   drawLargeEmotionPreview();
+}
+
+/**
+ * 更新方块选择器的选中状态
+ */
+function updateBlockSelectorState(type, value) {
+  // 找到对应类型的方块选项（通过检查父容器）
+  const allBlocks = document.querySelectorAll('.block-option');
+  allBlocks.forEach(block => {
+    // 检查是否是目标类型（通过检查onclick属性中的type参数）
+    const onclickAttr = block.getAttribute('onclick');
+    if (onclickAttr && onclickAttr.includes(`'${type}'`)) {
+      block.classList.remove('selected');
+      if (block.dataset.value === value) {
+        block.classList.add('selected');
+      }
+    }
+  });
+}
+
+/**
+ * 选择方块选项
+ */
+function selectBlockOption(type, value) {
+  // 更新选中状态
+  updateBlockSelectorState(type, value);
+
+  // 根据类型更新预览
+  if (type === 'gender') {
+    selectedGender = value;
+    updateCharacterFromDropdowns();
+  } else if (type === 'style') {
+    selectedStyle = value;
+    updateCharacterFromDropdowns();
+  } else if (type === 'emotion') {
+    selectedEmotion = value;
+    drawLargeEmotionPreview();
+  }
 }
 
 /**
@@ -287,7 +302,13 @@ function startBattleFromSelectors() {
   const characterName = document.getElementById('character-name-input')?.value || '';
   const emotionName = document.getElementById('emotion-name-input')?.value || '';
 
-  startPhaserGame(selectedCharacter, selectedEmotion, characterName, emotionName);
+  // 保存名称到Storage，供initBattlePage使用
+  const settings = Storage.getSettings();
+  settings.characterName = characterName;
+  settings.emotionName = emotionName;
+  Storage.saveSettings(settings);
+
+  // 切换到战斗页面（initBattlePage会启动Phaser游戏）
   showPage('battle');
 }
 
@@ -1179,6 +1200,7 @@ window.useUltimate = useUltimate;
 window.escapeBattle = escapeBattle;
 window.toggleDropdown = toggleDropdown;
 window.selectDropdownOption = selectDropdownOption;
+window.selectBlockOption = selectBlockOption;
 window.startBattleFromSelectors = startBattleFromSelectors;
 window.toggleSound = toggleSound;
 window.toggleVibration = toggleVibration;
@@ -1190,5 +1212,3 @@ window.deleteRecord = deleteRecord;
 window.endBreathing = endBreathing;
 window.selectTag = selectTag;
 window.saveJournal = saveJournal;
-window.prevMonth = () => StatsCalendar.prevMonth();
-window.nextMonth = () => StatsCalendar.nextMonth();

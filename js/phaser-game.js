@@ -834,18 +834,44 @@ class BattleScene extends Phaser.Scene {
     // 玩家血条
     PixelDrawer.drawHealthBar(
       this.uiGraphics,
-      60, 10,
+      60, 30,
       this.playerHp, this.playerMaxHp,
       0xe74c3c
     );
 
+    // 玩家昵称（血条下方，左对齐）
+    if (!this.playerNameText) {
+      this.playerNameText = this.add.text(60, 50, this.characterDisplayName, {
+        fontFamily: '"Press Start 2P"',
+        fontSize: '14px',
+        color: '#ffffff',
+        stroke: '#000000',
+        strokeThickness: 2
+      }).setOrigin(0, 0).setDepth(20);
+    } else {
+      this.playerNameText.setText(this.characterDisplayName);
+    }
+
     // 情绪血条
     PixelDrawer.drawHealthBar(
       this.uiGraphics,
-      this.gameWidth - 180, 10,
+      this.gameWidth - 180, 30,
       this.emotionHp, this.emotionMaxHp,
       EMOTIONS[this.selectedEmotion].color
     );
+
+    // 情绪昵称（血条下方，右对齐）
+    if (!this.emotionNameText) {
+      this.emotionNameText = this.add.text(this.gameWidth - 60, 50, this.emotionDisplayName, {
+        fontFamily: '"Press Start 2P"',
+        fontSize: '14px',
+        color: '#ffffff',
+        stroke: '#000000',
+        strokeThickness: 2
+      }).setOrigin(1, 0).setDepth(20);
+    } else {
+      this.emotionNameText.setText(this.emotionDisplayName);
+    }
   }
 
   // ===== 攻击计时 =====
@@ -1287,14 +1313,14 @@ class BattleScene extends Phaser.Scene {
 
   // ===== 使用大招 =====
   useUltimate() {
-    // 阜止重复触发
+    // 防止重复触发
     if (this.isUltimateActive || this.ultimateUsed) return;
 
     this.isUltimateActive = true;
     this.ultimateUsed = true;  // 每场战斗限用1次
 
-    // 大招：3次声效，每次左右各显示1个数字，共6个数字
-    this.ultimateRound = 0;  // 当前回合（0-2）
+    // 大招：5次声效，每次左右各显示1个数字，共10个数字
+    this.ultimateRound = 0;  // 当前回合（0-4）
 
     // 停止移动
     this.playerVelocityX = 0;
@@ -1318,14 +1344,14 @@ class BattleScene extends Phaser.Scene {
       ultimateBtn.querySelector('.btn-text').textContent = '✓ 已使用';
     }
 
-    // 开始大招回合（3回合，每回合1秒间隔）
+    // 开始大招回合（5回合，每回合600ms间隔，总计约3秒）
     this.executeUltimateRound();
   }
 
   // ===== 大招回合执行 =====
   executeUltimateRound() {
-    if (this.ultimateRound >= 3) {
-      // 3回合完成，跳结算
+    if (this.ultimateRound >= 5) {
+      // 5回合完成，跳结算
       this.isUltimateActive = false;
       this.time.delayedCall(300, () => this.endBattle('victory'));
       return;
@@ -1351,8 +1377,8 @@ class BattleScene extends Phaser.Scene {
       this.shakeScreenLight();
     });
 
-    // 800ms后进入下一回合（每回合约1秒，3回合约3秒）
-    this.time.delayedCall(800, () => {
+    // 600ms后进入下一回合（5回合 × 600ms = 3秒）
+    this.time.delayedCall(600, () => {
       this.ultimateRound++;
       this.executeUltimateRound();
     });

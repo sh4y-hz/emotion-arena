@@ -51,13 +51,13 @@
 
   /* 字体 */
   --font-pixel: 'Press Start 2P', monospace;
-  --font-size-xs: 10px;
-  --font-size-sm: 12px;
-  --font-size-md: 14px;
-  --font-size-lg: 16px;
-  --font-size-xl: 20px;
-  --font-size-2xl: 28px;
-  --font-size-3xl: 36px;
+  --font-size-xs: 12px;
+  --font-size-sm: 14px;
+  --font-size-md: 16px;
+  --font-size-lg: 18px;
+  --font-size-xl: 22px;
+  --font-size-2xl: 30px;
+  --font-size-3xl: 38px;
 
   /* 圆角 */
   --radius-sm: 4px;
@@ -777,38 +777,75 @@ canvas,
 }
 
 /* ============ 选择页面新布局 ============ */
-/* 下拉选择器独立行（在预览上方） */
-.selectors-standalone-row {
+/* 方块选择器区域 */
+.selectors-block-row {
   display: flex;
   flex-direction: row;
   justify-content: center;
   align-items: flex-start;
-  gap: var(--spacing-sm);
+  gap: var(--spacing-lg);
   width: 100%;
-  /* 预留下拉展开空间 */
-  padding-bottom: 140px;
-  margin-bottom: var(--spacing-md);
 }
 
-.selector-group {
+.selector-block-group {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: var(--spacing-sm);
+  align-items: flex-start;  /* 左对齐 */
+  gap: var(--spacing-md);
   min-width: 140px;
-  max-width: 180px;
+  max-width: 200px;
 }
 
 .selector-label {
   font-size: var(--font-size-md);
   color: var(--color-accent-gold);
+  width: 100%;
 }
 
-.selector-dropdowns-inline {
+/* 方块选择行 */
+.block-selector-row {
   display: flex;
   flex-direction: row;
   gap: var(--spacing-sm);
+  justify-content: flex-start;  /* 左对齐 */
+  flex-wrap: wrap;
+}
+
+/* 方块选项 */
+.block-option {
+  display: flex;
+  align-items: center;
   justify-content: center;
+  min-width: 60px;
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--color-bg-primary);
+  border: var(--border-width) solid var(--color-border);
+  color: var(--color-text-primary);
+  font-family: var(--font-pixel);
+  font-size: var(--font-size-xs);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.block-option:hover {
+  border-color: var(--color-accent-gold);
+  transform: translateY(-2px);
+}
+
+.block-option.selected {
+  background: var(--color-accent-gold);
+  color: var(--color-bg-primary);
+  border-color: var(--color-accent-gold);
+}
+
+.block-option-text {
+  white-space: nowrap;
+}
+
+/* 情绪方块特殊样式（5个选项，换行显示） */
+.emotion-blocks {
+  flex-wrap: wrap;
+  max-width: 200px;
 }
 
 /* 预览行 */
@@ -1855,13 +1892,13 @@ canvas,
 /* 小屏幕手机 */
 @media (max-width: 360px) {
   :root {
-    --font-size-3xl: 18px;
-    --font-size-2xl: 16px;
-    --font-size-xl: 12px;
-    --font-size-lg: 10px;
-    --font-size-md: 8px;
-    --font-size-sm: 6px;
-    --font-size-xs: 5px;
+    --font-size-3xl: 20px;
+    --font-size-2xl: 18px;
+    --font-size-xl: 14px;
+    --font-size-lg: 12px;
+    --font-size-md: 10px;
+    --font-size-sm: 8px;
+    --font-size-xs: 7px;
     --spacing-xl: 16px;
     --spacing-lg: 12px;
   }
