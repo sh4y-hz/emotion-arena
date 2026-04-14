@@ -1438,13 +1438,20 @@ function startPhaserGame(character, emotion, characterName = '', emotionName = '
     phaserGame = null;
   }
 
-  // 创建新游戏实例（不自动启动场景）
+  // 创建新游戏实例（响应式缩放）
   const config = {
     type: Phaser.AUTO,
     width: 800,
     height: 400,
     parent: 'phaser-container',
     backgroundColor: '#1a1a2e',
+    scale: {
+      mode: Phaser.Scale.FIT,        // 自动缩放适应容器
+      autoCenter: Phaser.Scale.CENTER_BOTH,  // 居中显示
+      width: 800,
+      height: 400,
+      parent: 'phaser-container'
+    },
     physics: {
       default: 'arcade',
       arcade: {

@@ -815,11 +815,64 @@ canvas,
 }
 
 /* ============ 战斗界面 ============ */
-.battle-container {
+/* 战斗页面全屏布局 */
+#page-battle {
+  padding: 0 !important;
+}
+
+#page-battle .page-header {
+  display: none;
+}
+
+#page-battle .battle-container {
   width: 100%;
   height: 100%;
   display: flex;
   flex-direction: column;
+}
+
+/* Phaser游戏容器 - 响应式 */
+#phaser-container {
+  width: 100%;
+  flex: 1;
+  min-height: 200px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+}
+
+#phaser-container canvas {
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+}
+
+/* 手机端战斗画布优化 */
+@media (max-width: 480px) {
+  #phaser-container {
+    min-height: 180px;
+  }
+
+  /* 手机端战斗UI紧凑布局 */
+  .battle-ui {
+    padding: var(--spacing-sm);
+  }
+
+  .battle-stats {
+    flex-wrap: wrap;
+    gap: var(--spacing-sm);
+  }
+
+  .stat-item {
+    font-size: var(--font-size-xs);
+  }
+}
+
+@media (max-width: 360px) {
+  #phaser-container {
+    min-height: 160px;
+  }
 }
 
 #battle-canvas {
