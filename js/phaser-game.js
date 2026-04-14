@@ -577,7 +577,6 @@ class BattleScene extends Phaser.Scene {
 
     // ===== 伤害特效系统 =====
     this.damageNumbers = [];  // 伤害数字列表 {x, y, value, time, color}
-    this.hitFlashAlpha = 0;   // 命中闪光透明度
     this.screenShakeOffset = {x: 0, y: 0};  // 屏幕震动偏移
     this.shakeDuration = 0;   // 震动持续时间
 
@@ -940,7 +939,6 @@ class BattleScene extends Phaser.Scene {
 
     // ===== 伤害特效 =====
     this.showDamageNumber(this.emotionX, this.emotionY - 40, damage, '#e74c3c');
-    this.triggerHitFlash();
     this.triggerScreenShake(8, 150);
 
     // 显示情绪挨打气泡
@@ -976,7 +974,6 @@ class BattleScene extends Phaser.Scene {
 
     // ===== 伤害特效 =====
     this.showDamageNumber(this.playerX, this.playerY - 40, damage, '#f39c12');
-    this.triggerHitFlash();
     this.triggerScreenShake(5, 100);
 
     // 显示玩家挨打气泡（鼓励话术）
@@ -1154,11 +1151,6 @@ class BattleScene extends Phaser.Scene {
     });
   }
 
-  // 触发命中闪光
-  triggerHitFlash() {
-    this.hitFlashAlpha = 0.6;  // 闪光强度
-  }
-
   // 触发屏幕震动
   triggerScreenShake(intensity, duration) {
     this.shakeDuration = duration;
@@ -1177,12 +1169,6 @@ class BattleScene extends Phaser.Scene {
       }
     }
 
-    // 更新命中闪光（逐渐衰减）
-    if (this.hitFlashAlpha > 0) {
-      this.hitFlashAlpha -= delta * 0.003;
-      if (this.hitFlashAlpha < 0) this.hitFlashAlpha = 0;
-    }
-
     // 更新屏幕震动
     if (this.shakeDuration > 0) {
       this.shakeDuration -= delta;
@@ -1197,21 +1183,7 @@ class BattleScene extends Phaser.Scene {
 
   // 绘制特效（在drawCharacters之后调用）
   drawEffects() {
-    // 使用固定的Graphics对象而不是每帧创建新对象
-    if (!this.effectsGraphics) {
-      this.effectsGraphics = this.add.graphics();
-      this.effectsGraphics.setDepth(100);
-    }
-
-    this.effectsGraphics.clear();
-
-    // 绘制命中闪光（红色半透明覆盖）
-    if (this.hitFlashAlpha > 0) {
-      this.effectsGraphics.fillStyle(0xff0000, this.hitFlashAlpha);
-      this.effectsGraphics.fillRect(0, 0, this.gameWidth, this.gameHeight);
-    }
-
-    // 使用固定的Text对象池来显示伤害数字
+    // 使用固定的Text对象池来显示伤害数字（不创建Graphics覆盖层）
     if (!this.damageTextPool) {
       this.damageTextPool = [];
       for (let i = 0; i < 5; i++) {
