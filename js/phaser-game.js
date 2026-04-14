@@ -186,12 +186,14 @@ const GAME_CONSTANTS = {
   PLAYER_SPEED: 150,        // 加快玩家速度
   EMOTION_SPEED: 120,       // 加快情绪速度
   ATTACK_TIME: 250,
-  WAIT_TIME: 150,           // 减少等待时间（原来400ms）
+  WAIT_TIME: 150,           // 减少等待时间
   IDLE_TIME: 800,
 
-  // 边界偏移（相对于画布边缘）
-  LEFT_MARGIN: 60,
-  RIGHT_MARGIN: 60
+  // 固定位置（FIT模式下使用）
+  PLAYER_HOME: 100,
+  PLAYER_MIN: 60,
+  EMOTION_HOME: 600,
+  EMOTION_MAX: 640
 };
 
 // ==================== 像素绘制工具 ====================
@@ -527,9 +529,9 @@ class BattleScene extends Phaser.Scene {
   }
 
   create() {
-    // 游戏尺寸 - 动态获取
-    this.gameWidth = this.scale.width;
-    this.gameHeight = this.scale.height;
+    // 游戏尺寸 - 固定值（FIT模式）
+    this.gameWidth = 800;
+    this.gameHeight = 400;
 
     // ===== 状态初始化 =====
     this.mode = 'idle';
@@ -579,7 +581,7 @@ class BattleScene extends Phaser.Scene {
     this.screenShakeOffset = {x: 0, y: 0};  // 屏幕震动偏移
     this.shakeDuration = 0;   // 震动持续时间
 
-    // ===== 位置（手动管理，基于画布尺寸动态计算） =====
+    // ===== 位置（手动管理，固定值） =====
     this.updateLayoutPositions();
 
     this.playerVelocityX = 0;
@@ -597,80 +599,48 @@ class BattleScene extends Phaser.Scene {
 
     // ===== 初始绘制 =====
     this.drawCharacters(0);
-
-    // ===== 监听resize事件 =====
-    this.scale.on('resize', this.handleResize, this);
   }
 
-  // 动态计算位置
+  // 固定位置计算
   updateLayoutPositions() {
-    // 边界计算（基于画布尺寸）
-    this.playerMin = GAME_CONSTANTS.LEFT_MARGIN;
-    this.playerHome = GAME_CONSTANTS.LEFT_MARGIN + 40;
-    this.emotionMax = this.gameWidth - GAME_CONSTANTS.RIGHT_MARGIN;
-    this.emotionHome = this.gameWidth - 100;
+    // Y位置固定
+    this.playerY = 280;
+    this.emotionY = 280;
 
-    // 玩家Y位置：画布高度 - 80（地面高度）
-    this.playerY = this.gameHeight - 80;
-    this.emotionY = this.gameHeight - 80;
+    // 玩家起始位置
+    this.playerX = GAME_CONSTANTS.PLAYER_HOME;
 
-    // 玩家起始位置：左侧
-    this.playerX = this.playerHome;
-
-    // 情绪起始位置：右侧
-    this.emotionX = this.emotionHome;
-  }
-
-  // 处理画布resize
-  handleResize(gameSize) {
-    this.gameWidth = gameSize.width;
-    this.gameHeight = gameSize.height;
-
-    // 重新计算位置
-    this.updateLayoutPositions();
-
-    // 重绘背景
-    this.drawBackground();
+    // 情绪起始位置
+    this.emotionX = GAME_CONSTANTS.EMOTION_HOME;
   }
 
   // ===== 绘制背景 =====
   drawBackground() {
-    // 清除旧背景，重新绘制
-    if (this.bgGraphics) {
-      this.bgGraphics.destroy();
-    }
-    this.bgGraphics = this.add.graphics();
-
-    const w = this.gameWidth;
-    const h = this.gameHeight;
+    const graphics = this.add.graphics();
 
     // 天空
-    this.bgGraphics.fillStyle(0x1a1a2e);
-    this.bgGraphics.fillRect(0, 0, w, h);
+    graphics.fillStyle(0x1a1a2e);
+    graphics.fillRect(0, 0, 800, 400);
 
-    // 擂台地面 - 动态位置
-    const groundY = h - 50;
-    const groundHeight = 50;
-    const margin = 10;
-    this.bgGraphics.fillStyle(0x8b4513);
-    this.bgGraphics.fillRect(margin, groundY, w - margin * 2, groundHeight);
+    // 擂台地面
+    graphics.fillStyle(0x8b4513);
+    graphics.fillRect(50, 310, 700, 40);
 
     // 木纹
-    this.bgGraphics.fillStyle(0x6b3513);
-    for (let i = margin; i < w - margin; i += 20) {
-      this.bgGraphics.fillRect(i, groundY, 2, groundHeight);
+    graphics.fillStyle(0x6b3513);
+    for (let i = 0; i < 700; i += 20) {
+      graphics.fillRect(50 + i, 310, 2, 40);
     }
 
-    // 围栏 - 动态位置
-    const fenceHeight = groundY - 40;
-    this.bgGraphics.fillStyle(0x2c3e50);
-    this.bgGraphics.fillRect(margin, 40, 10, fenceHeight);
-    this.bgGraphics.fillRect(w - margin - 10, 40, 10, fenceHeight);
+    // 围栏
+    graphics.fillStyle(0x2c3e50);
+    graphics.fillRect(40, 50, 10, 260);
+    graphics.fillRect(750, 50, 10, 260);
 
     // 围栏顶部装饰
-    this.bgGraphics.fillStyle(0xf8b500);
-    this.bgGraphics.fillRect(margin, 30, 10, 10);
-    this.bgGraphics.fillRect(w - margin - 10, 30, 10, 10);
+    graphics.fillStyle(0xf8b500);
+    graphics.fillRect(40, 40, 10, 10);
+    graphics.fillRect(750, 40, 10, 10);
   }
 
   // ===== 创建UI =====
@@ -706,9 +676,9 @@ class BattleScene extends Phaser.Scene {
       }
     }
 
-    // 边界限制（动态计算）
-    this.playerX = Math.max(this.playerMin, Math.min(this.emotionMax - 80, this.playerX));
-    this.emotionX = Math.max(this.playerMin + 80, Math.min(this.emotionMax, this.emotionX));
+    // 边界限制（固定值）
+    this.playerX = Math.max(GAME_CONSTANTS.PLAYER_MIN, Math.min(GAME_CONSTANTS.EMOTION_MAX - 80, this.playerX));
+    this.emotionX = Math.max(GAME_CONSTANTS.PLAYER_MIN + 80, Math.min(GAME_CONSTANTS.EMOTION_MAX, this.emotionX));
 
     // 更新状态逻辑
     this.updateMovement(delta);
@@ -760,16 +730,16 @@ class BattleScene extends Phaser.Scene {
   updateMovement(delta) {
     // ========== 玩家边界检测 ==========
     if (this.playerState === 'retreating') {
-      if (this.playerX <= this.playerHome) {
-        this.playerX = this.playerHome;
+      if (this.playerX <= GAME_CONSTANTS.PLAYER_HOME) {
+        this.playerX = GAME_CONSTANTS.PLAYER_HOME;
         this.playerVelocityX = 0;
         this.playerState = 'idle';
       }
     }
 
     // 玩家前进时边界
-    if (this.playerX < this.playerMin) {
-      this.playerX = this.playerMin;
+    if (this.playerX < GAME_CONSTANTS.PLAYER_MIN) {
+      this.playerX = GAME_CONSTANTS.PLAYER_MIN;
       this.playerVelocityX = 0;
     }
 
@@ -786,8 +756,8 @@ class BattleScene extends Phaser.Scene {
 
     // 情绪后退到边界
     if (this.emotionState === 'retreating') {
-      if (this.emotionX >= this.emotionMax) {
-        this.emotionX = this.emotionMax;
+      if (this.emotionX >= GAME_CONSTANTS.EMOTION_MAX) {
+        this.emotionX = GAME_CONSTANTS.EMOTION_MAX;
         this.emotionVelocityX = 0;
         this.emotionState = 'delayed_waiting';  // 进入延迟等待状态
         this.waitTimer = 0;
@@ -806,8 +776,8 @@ class BattleScene extends Phaser.Scene {
     }
 
     // 情绪前进到边界
-    if (this.emotionX <= this.playerMin + 80) {
-      this.emotionX = this.playerMin + 80;
+    if (this.emotionX <= GAME_CONSTANTS.PLAYER_MIN + 80) {
+      this.emotionX = GAME_CONSTANTS.PLAYER_MIN + 80;
       this.emotionVelocityX = 0;
       if (this.emotionState === 'advancing') {
         this.emotionState = 'waiting';
@@ -822,8 +792,8 @@ class BattleScene extends Phaser.Scene {
     const collisionDist = 80; // 碰撞阈值
 
     // 特殊情况：情绪在角落最左边界时，玩家即使被边界阻挡也能攻击
-    const emotionAtLeftEdge = this.emotionX <= this.playerMin + 80;
-    const playerAtEdge = this.playerX <= this.playerMin;
+    const emotionAtLeftEdge = this.emotionX <= GAME_CONSTANTS.PLAYER_MIN + 80;
+    const playerAtEdge = this.playerX <= GAME_CONSTANTS.PLAYER_MIN;
 
     // 只有在距离足够近且没有正在攻击时才检测碰撞
     if (distance <= collisionDist && !this.collisionTriggered && !this.isAttacking) {
@@ -1225,34 +1195,48 @@ class BattleScene extends Phaser.Scene {
 
   // 绘制特效（在drawCharacters之后调用）
   drawEffects() {
-    // 绘制命中闪光（红色半透明覆盖）
-    if (this.hitFlashAlpha > 0) {
-      const flashGraphics = this.add.graphics();
-      flashGraphics.fillStyle(0xff0000, this.hitFlashAlpha);
-      flashGraphics.fillRect(0, 0, this.gameWidth, this.gameHeight);
-      // 下帧自动清除（因为每帧重绘）
-      flashGraphics.setDepth(100);
-      this.time.delayedCall(50, () => flashGraphics.destroy());
+    // 使用固定的Graphics对象而不是每帧创建新对象
+    if (!this.effectsGraphics) {
+      this.effectsGraphics = this.add.graphics();
+      this.effectsGraphics.setDepth(100);
     }
 
-    // 绘制伤害数字
-    for (const dn of this.damageNumbers) {
-      const alpha = Math.min(1, dn.time / 300);
-      const text = this.add.text(
-        dn.x + this.screenShakeOffset.x,
-        dn.y + dn.offsetY + this.screenShakeOffset.y,
-        `-${dn.value}`,
-        {
+    this.effectsGraphics.clear();
+
+    // 绘制命中闪光（红色半透明覆盖）
+    if (this.hitFlashAlpha > 0) {
+      this.effectsGraphics.fillStyle(0xff0000, this.hitFlashAlpha);
+      this.effectsGraphics.fillRect(0, 0, this.gameWidth, this.gameHeight);
+    }
+
+    // 使用固定的Text对象池来显示伤害数字
+    if (!this.damageTextPool) {
+      this.damageTextPool = [];
+      for (let i = 0; i < 5; i++) {
+        const txt = this.add.text(0, 0, '', {
           fontFamily: '"Press Start 2P"',
           fontSize: '16px',
-          color: dn.color,
+          color: '#e74c3c',
           stroke: '#000',
           strokeThickness: 2
-        }
-      ).setOrigin(0.5).setAlpha(alpha).setDepth(50);
+        }).setOrigin(0.5).setDepth(50).setVisible(false);
+        this.damageTextPool.push(txt);
+      }
+    }
 
-      // 下帧清除
-      this.time.delayedCall(50, () => text.destroy());
+    // 更新伤害数字显示
+    for (let i = 0; i < this.damageTextPool.length; i++) {
+      if (i < this.damageNumbers.length) {
+        const dn = this.damageNumbers[i];
+        const txt = this.damageTextPool[i];
+        txt.setText(`-${dn.value}`)
+           .setPosition(dn.x, dn.y + dn.offsetY)
+           .setColor(dn.color)
+           .setAlpha(Math.min(1, dn.time / 300))
+           .setVisible(true);
+      } else {
+        this.damageTextPool[i].setVisible(false);
+      }
     }
   }
 
@@ -1589,20 +1573,15 @@ function startPhaserGame(character, emotion, characterName = '', emotionName = '
     phaserGame = null;
   }
 
-  // 获取容器尺寸，动态设置游戏画布大小
-  const container = document.getElementById('phaser-container');
-  const containerWidth = container.clientWidth || 800;
-  const containerHeight = container.clientHeight || 400;
-
   // 创建新游戏实例（响应式缩放）
   const config = {
     type: Phaser.AUTO,
-    width: containerWidth,
-    height: containerHeight,
+    width: 800,
+    height: 400,
     parent: 'phaser-container',
     backgroundColor: '#1a1a2e',
     scale: {
-      mode: Phaser.Scale.RESIZE,  // 动态调整画布大小
+      mode: Phaser.Scale.FIT,  // FIT模式自动缩放适应容器
       autoCenter: Phaser.Scale.CENTER_BOTH
     },
     physics: {
