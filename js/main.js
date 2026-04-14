@@ -139,18 +139,21 @@ function drawCharacterPreviews() {
     const previewEl = document.getElementById('preview-' + charId);
     if (!previewEl) return;
 
-    // 创建临时Canvas绘制预览
+    const char = CHARACTERS[charId];
+    // Canvas尺寸与角色尺寸匹配
     const canvas = document.createElement('canvas');
     canvas.width = 64;
-    canvas.height = 96;
+    canvas.height = char.height || 96;  // 使用角色实际高度
     canvas.style.width = '100%';
     canvas.style.height = '100%';
+    canvas.style.objectFit = 'contain';
 
     const ctx = canvas.getContext('2d');
     ctx.imageSmoothingEnabled = false;
 
-    // 使用简化的像素绘制
-    drawSimpleCharacter(ctx, charId, 32, 80, 'idle');
+    // 绘制位置：x居中，y在底部（角色从底部向上绘制）
+    const drawY = canvas.height - 4;  // 底部留4px边距
+    drawSimpleCharacter(ctx, charId, 32, drawY, 'idle');
 
     // 替换预览元素内容
     previewEl.innerHTML = '';

@@ -568,15 +568,15 @@ canvas,
 .character-card {
   background: var(--color-bg-card);
   border: var(--border-width) solid var(--color-border);
-  padding: var(--spacing-md);
+  padding: var(--spacing-sm);
   width: 100%;
-  max-width: 110px;
+  max-width: 120px;
   cursor: pointer;
   transition: all var(--transition-normal) ease;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--spacing-sm);
+  gap: var(--spacing-xs);
 }
 
 .character-card:hover {
@@ -596,13 +596,19 @@ canvas,
 
 .character-preview {
   width: 64px;
-  height: 96px;
+  height: 96px;  /* 恢复为最大角色高度 */
   background: #222;
   border: 1px solid #444;
   display: flex;
   align-items: flex-end;
   justify-content: center;
   overflow: hidden;
+}
+
+.character-preview canvas {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
 }
 
 .character-name {
