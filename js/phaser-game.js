@@ -592,7 +592,9 @@ class BattleScene extends Phaser.Scene {
 
     // ===== 创建角色Graphics（不使用Container和Physics） =====
     this.playerGraphics = this.add.graphics();
+    this.playerGraphics.setDepth(10);  // 确保角色在特效之上
     this.emotionGraphics = this.add.graphics();
+    this.emotionGraphics.setDepth(10);
 
     // ===== 创建UI =====
     this.createUI();
