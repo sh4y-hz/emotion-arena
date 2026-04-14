@@ -109,13 +109,12 @@ const CHARACTERS = {
   }
 };
 
-// 情绪怪物定义
+// 情绪怪物定义 - 统一血量和点击次数（让用户充分发泄）
 const EMOTIONS = {
   sadness: {
     name: '沮丧',
-    hp: 80,
-    timeLimit: 8,
-    requiredClicks: 15,
+    hp: 100,           // 统一血量100
+    requiredClicks: 100, // 统一点击100次
     width: 80,
     height: 80,
     color: 0x3498db,
@@ -124,9 +123,8 @@ const EMOTIONS = {
   },
   shame: {
     name: '羞耻',
-    hp: 70,
-    timeLimit: 10,
-    requiredClicks: 12,
+    hp: 100,
+    requiredClicks: 100,
     width: 80,
     height: 80,
     color: 0xf1c40f,
@@ -135,9 +133,8 @@ const EMOTIONS = {
   },
   fear: {
     name: '恐惧',
-    hp: 90,
-    timeLimit: 6,
-    requiredClicks: 18,
+    hp: 100,
+    requiredClicks: 100,
     width: 80,
     height: 80,
     color: 0x95a5a6,
@@ -147,8 +144,7 @@ const EMOTIONS = {
   anger: {
     name: '愤怒',
     hp: 100,
-    timeLimit: 6,
-    requiredClicks: 20,
+    requiredClicks: 100,
     width: 80,
     height: 80,
     color: 0xe74c3c,
@@ -157,9 +153,8 @@ const EMOTIONS = {
   },
   jealousy: {
     name: '嫉妒',
-    hp: 110,
-    timeLimit: 5,
-    requiredClicks: 22,
+    hp: 100,
+    requiredClicks: 100,
     width: 80,
     height: 80,
     color: 0x27ae60,
@@ -168,9 +163,8 @@ const EMOTIONS = {
   },
   anxiety: {
     name: '焦虑',
-    hp: 120,
-    timeLimit: 5,
-    requiredClicks: 25,
+    hp: 100,
+    requiredClicks: 100,
     width: 80,
     height: 80,
     color: 0x9b59b6,
@@ -563,6 +557,7 @@ class BattleScene extends Phaser.Scene {
     this.attacker = null;
     this.collisionTriggered = false;
     this.isUltimateActive = false;
+    this.ultimateUsed = false;  // 大招使用限制：每场只能用1次
 
     // 玩家攻击意图（点击攻击按钮后立即记录）
     this.playerAttackIntent = false;
@@ -932,13 +927,14 @@ class BattleScene extends Phaser.Scene {
     this.playerState = 'attacking';
     this.playerVelocityX = 0;
 
-    // 伤害
-    const damage = 8 + Math.floor(Math.random() * 5);
-    this.emotionHp = Math.max(0, this.emotionHp - damage);
+    // 后端固定伤害1（统一血量100，点击100次）
+    const realDamage = 1;
+    this.emotionHp = Math.max(0, this.emotionHp - realDamage);
     this.clicks++;
 
-    // ===== 伤害特效 =====
-    this.showDamageNumber(this.emotionX, this.emotionY - 40, damage, '#e74c3c');
+    // 前端随机显示数字（视觉效果）
+    const displayDamage = 5 + Math.floor(Math.random() * 10);  // 5-15
+    this.showDamageNumber(this.emotionX, this.emotionY - 40, displayDamage, '#e74c3c');
     this.triggerScreenShake(8, 150);
 
     // 显示情绪挨打气泡
@@ -1293,14 +1289,23 @@ class BattleScene extends Phaser.Scene {
 
   // ===== 使用大招 =====
   useUltimate() {
-    // 20连击大招
+    // 防止重复触发
+    if (this.isUltimateActive || this.ultimateUsed) return;
+
     this.isUltimateActive = true;
-    this.ultimateComboCount = 20;
+    this.ultimateUsed = true;  // 每场战斗限用1次
+
+    // 50连击大招（延长动画时间：50×120ms=6秒）
+    this.ultimateComboCount = 50;
     this.ultimateComboIndex = 0;
 
     // 停止移动
     this.playerVelocityX = 0;
     this.emotionVelocityX = 0;
+
+    // 大招直接清空情绪血量（一次结束战斗）
+    this.emotionHp = 0;
+    this.clicks += 100;  // 计入100次点击
 
     // 播放音效
     if (typeof AudioSystem !== 'undefined') {
@@ -1311,8 +1316,16 @@ class BattleScene extends Phaser.Scene {
     // 创建爆炸特效
     this.createUltimateExplosion();
 
-    // 开始连击（快速连击）
-    this.time.delayedCall(100, () => this.executeUltimateHit());
+    // 更新大招按钮UI（变灰）
+    const ultimateBtn = document.getElementById('ultimate-btn');
+    if (ultimateBtn) {
+      ultimateBtn.classList.add('used');
+      ultimateBtn.disabled = true;
+      ultimateBtn.querySelector('.btn-text').textContent = '✓ 已使用';
+    }
+
+    // 开始连击动画
+    this.time.delayedCall(150, () => this.executeUltimateHit());
   }
 
   // ===== 大招爆炸特效 =====
@@ -1364,37 +1377,32 @@ class BattleScene extends Phaser.Scene {
   executeUltimateHit() {
     if (!this.isUltimateActive) return;
 
-    // 每次攻击造成伤害（20连击总伤害约200-300）
-    const damage = 10 + Math.floor(Math.random() * 5);
-    this.emotionHp = Math.max(0, this.emotionHp - damage);
-    this.clicks++;
-
-    // 显示连击数字
-    this.showUltimateDamageNumber(damage, this.ultimateComboIndex + 1);
+    // 显示连击数字（视觉效果，不实际扣血）
+    const displayDamage = 20 + Math.floor(Math.random() * 10);  // 20-30
+    this.showUltimateDamageNumber(displayDamage, this.ultimateComboIndex + 1);
 
     // 屏幕震动效果（轻微震动）
     this.shakeScreenLight();
 
-    // 播放音效（每隔5次播放一次，避免过于嘈杂）
+    // 播放音效（每隔5次播放一次）
     if (this.ultimateComboIndex % 5 === 0 && typeof AudioSystem !== 'undefined') {
       AudioSystem.play('hit');
       AudioSystem.vibrate(30);
     }
 
-    // 显示气泡（只在关键连击显示：第1、10、20次）
-    if (this.ultimateComboIndex === 0 || this.ultimateComboIndex === 9 || this.ultimateComboIndex === 19) {
+    // 显示气泡（每10击显示一次）
+    if (this.ultimateComboIndex % 10 === 0) {
       this.showBubble('emotion', this.getEmotionUltimateMessage());
     }
 
     this.ultimateComboIndex++;
     if (this.ultimateComboIndex < this.ultimateComboCount) {
-      // 快速连击间隔（80ms）
-      this.time.delayedCall(80, () => this.executeUltimateHit());
+      // 延长连击间隔（120ms）
+      this.time.delayedCall(120, () => this.executeUltimateHit());
     } else {
-      // 连击结束
+      // 连击结束，进入胜利结算
       this.isUltimateActive = false;
-      // 检查结果（可能直接胜利或继续战斗）
-      this.checkResult();
+      this.time.delayedCall(500, () => this.endBattle('victory'));
     }
   }
 
@@ -1494,20 +1502,6 @@ class BattleScene extends Phaser.Scene {
       this.idleTimer.remove();
     }
 
-    // 保存结果
-    const battleResult = {
-      result: result,
-      time: this.battleTime,
-      clicks: this.clicks,
-      emotion: this.selectedEmotion,
-      character: this.selectedCharacter
-    };
-
-    if (typeof Storage !== 'undefined') {
-      Storage.addBattle(battleResult);
-      Storage.updateStreak(result === 'victory');
-    }
-
     // 播放音效
     if (typeof AudioSystem !== 'undefined') {
       if (result === 'victory') {
@@ -1517,22 +1511,127 @@ class BattleScene extends Phaser.Scene {
       }
     }
 
+    // ===== 显示结果动画（2秒） =====
+    this.showResultAnimation(result);
+
+    // 保存结果
+    const battleResult = {
+      result: result,
+      time: this.battleTime,
+      clicks: this.clicks,
+      emotion: this.selectedEmotion,
+      character: this.selectedCharacter,
+      characterName: this.characterDisplayName,
+      emotionName: this.emotionDisplayName
+    };
+
+    if (typeof Storage !== 'undefined') {
+      Storage.addBattle(battleResult);
+      Storage.updateStreak(result === 'victory');
+    }
+
     // 检查成就
     let newAchievements = [];
     if (typeof AchievementSystem !== 'undefined') {
       newAchievements = AchievementSystem.checkAchievements(battleResult);
     }
 
-    // 停止场景
-    this.scene.pause();
+    // 2秒后才显示结果页面（防误触）
+    this.time.delayedCall(2000, () => {
+      // 停止场景
+      this.scene.pause();
 
-    // 显示结果页面
-    if (typeof showPage !== 'undefined') {
-      showPage('result');
-      if (typeof renderResult !== 'undefined') {
-        renderResult(battleResult, newAchievements);
+      // 显示结果页面
+      if (typeof showPage !== 'undefined') {
+        showPage('result');
+        if (typeof renderResult !== 'undefined') {
+          renderResult(battleResult, newAchievements);
+        }
       }
+    });
+  }
+
+  // ===== 结果展示动画 =====
+  showResultAnimation(result) {
+    // 创建结果文字覆盖层
+    const resultText = this.add.text(400, 200, '', {
+      fontFamily: '"Press Start 2P"',
+      fontSize: '36px',
+      color: result === 'victory' ? '#27ae60' : '#e74c3c',
+      stroke: '#000',
+      strokeThickness: 4
+    }).setOrigin(0.5).setDepth(200);
+
+    if (result === 'victory') {
+      resultText.setText('🏆 胜利!');
+      // 角色庆祝动画
+      this.playVictoryAnimation();
+    } else if (result === 'defeat') {
+      resultText.setText('💔 失败');
+      // 角色倒下动画
+      this.playDefeatAnimation();
+    } else {
+      resultText.setText('🏃 逃跑');
+      resultText.setColor('#f39c12');
     }
+
+    // 2秒后移除文字
+    this.time.delayedCall(2000, () => {
+      resultText.destroy();
+    });
+  }
+
+  // ===== 胜利动画 =====
+  playVictoryAnimation() {
+    // 角色跳跃庆祝
+    const jumpAnimation = () => {
+      if (this.playerY > 200) {
+        this.playerY -= 10;
+        this.time.delayedCall(50, jumpAnimation);
+      } else {
+        // 下落
+        const fallAnimation = () => {
+          if (this.playerY < 280) {
+            this.playerY += 10;
+            this.time.delayedCall(50, fallAnimation);
+          }
+        };
+        this.time.delayedCall(200, fallAnimation);
+      }
+    };
+    jumpAnimation();
+
+    // 情绪消失爆炸
+    this.createEmotionExplosion();
+  }
+
+  // ===== 情绪消失爆炸 =====
+  createEmotionExplosion() {
+    const explosionGraphics = this.add.graphics();
+    let radius = 20;
+    const centerX = this.emotionX;
+    const centerY = this.emotionY;
+
+    const expandAnimation = () => {
+      explosionGraphics.clear();
+      explosionGraphics.fillStyle(EMOTIONS[this.selectedEmotion].color, 0.8);
+      explosionGraphics.fillCircle(centerX, centerY, radius);
+      radius += 10;
+      if (radius < 60) {
+        this.time.delayedCall(30, expandAnimation);
+      } else {
+        explosionGraphics.destroy();
+        // 清除情绪显示
+        this.emotionGraphics.clear();
+      }
+    };
+    expandAnimation();
+  }
+
+  // ===== 失败动画 =====
+  playDefeatAnimation() {
+    // 角色倒下（倾斜）
+    this.playerGraphics.setRotation(0.5);
   }
 }
 

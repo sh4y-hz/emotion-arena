@@ -65,137 +65,65 @@
         <h2 id="select-title" class="page-title">选择角色与对手</h2>
       </header>
 
-      <main class="page-content scrollable">
-        <!-- 角色选择区 -->
-        <section class="selection-section" aria-labelledby="character-section-title">
-          <h3 id="character-section-title" class="section-label">选择你的角色</h3>
+      <main class="page-content">
+        <!-- 选择器区域 -->
+        <div class="selector-row">
+          <div class="selector-group">
+            <label for="gender-select">性别</label>
+            <select id="gender-select" onchange="updateCharacterFromSelectors()">
+              <option value="male">男性</option>
+              <option value="female">女性</option>
+            </select>
+          </div>
+          <div class="selector-group">
+            <label for="style-select">服装</label>
+            <select id="style-select" onchange="updateCharacterFromSelectors()">
+              <option value="young">休闲活泼</option>
+              <option value="student">校服学生</option>
+              <option value="worker">西装职场</option>
+            </select>
+          </div>
+        </div>
 
-          <!-- 命名区域（放在角色选择标题下） -->
-          <div class="naming-row">
-            <div class="name-input-inline">
-              <label for="character-name-input">角色昵称</label>
-              <input type="text" id="character-name-input" placeholder="给角色起个名字" maxlength="10">
+        <!-- 预览区域 -->
+        <div class="preview-row">
+          <!-- 角色预览 -->
+          <div class="preview-box character-preview-box">
+            <div class="preview-label">你的角色</div>
+            <div class="preview-large" id="character-preview-large"></div>
+            <div class="name-input-group">
+              <input type="text" id="character-name-input" placeholder="角色昵称" maxlength="10">
             </div>
-            <div class="name-input-inline">
-              <label for="emotion-name-input">情绪名称</label>
-              <input type="text" id="emotion-name-input" placeholder="给情绪起个名字" maxlength="10">
+          </div>
+
+          <!-- VS徽章 -->
+          <div class="vs-badge">VS</div>
+
+          <!-- 情绪预览 -->
+          <div class="preview-box emotion-preview-box">
+            <div class="preview-label">对手情绪</div>
+            <div class="selector-group emotion-selector">
+              <select id="emotion-select" onchange="updateEmotionPreview()">
+                <option value="sadness">沮丧</option>
+                <option value="shame">羞耻</option>
+                <option value="fear">恐惧</option>
+                <option value="anger">愤怒</option>
+                <option value="jealousy">嫉妒</option>
+                <option value="anxiety">焦虑</option>
+              </select>
             </div>
+            <div class="preview-large" id="emotion-preview-large"></div>
+            <div class="name-input-group">
+              <input type="text" id="emotion-name-input" placeholder="情绪名称" maxlength="10">
+            </div>
+            <div class="difficulty-info-small" id="difficulty-text">100次点击 · 无时间限制</div>
           </div>
-
-          <div class="tab-buttons" role="tablist">
-            <button class="tab-btn active" role="tab" aria-selected="true" data-tab="male" onclick="switchCharacterTab('male')">
-              男性角色
-            </button>
-            <button class="tab-btn" role="tab" aria-selected="false" data-tab="female" onclick="switchCharacterTab('female')">
-              女性角色
-            </button>
-          </div>
-
-          <!-- 男性角色 -->
-          <div class="character-grid tab-panel" id="tab-male" role="tabpanel">
-            <article class="character-card" data-character="boy_young" onclick="selectCharacter('boy_young')" tabindex="0" role="button">
-              <div class="character-preview" id="preview-boy_young" aria-hidden="true"></div>
-              <h4 class="character-name">活泼少年</h4>
-              <p class="character-desc">儿童 · T恤短裤</p>
-            </article>
-            <article class="character-card" data-character="boy_student" onclick="selectCharacter('boy_student')" tabindex="0" role="button">
-              <div class="character-preview" id="preview-boy_student" aria-hidden="true"></div>
-              <h4 class="character-name">学生</h4>
-              <p class="character-desc">青少年 · 校服眼镜</p>
-            </article>
-            <article class="character-card" data-character="boy_worker" onclick="selectCharacter('boy_worker')" tabindex="0" role="button">
-              <div class="character-preview" id="preview-boy_worker" aria-hidden="true"></div>
-              <h4 class="character-name">上班族</h4>
-              <p class="character-desc">成年 · 西装领带</p>
-            </article>
-          </div>
-
-          <!-- 女性角色 -->
-          <div class="character-grid tab-panel hidden" id="tab-female" role="tabpanel">
-            <article class="character-card" data-character="girl_young" onclick="selectCharacter('girl_young')" tabindex="0" role="button">
-              <div class="character-preview" id="preview-girl_young" aria-hidden="true"></div>
-              <h4 class="character-name">可爱女孩</h4>
-              <p class="character-desc">儿童 · 连衣裙辫子</p>
-            </article>
-            <article class="character-card" data-character="girl_student" onclick="selectCharacter('girl_student')" tabindex="0" role="button">
-              <div class="character-preview" id="preview-girl_student" aria-hidden="true"></div>
-              <h4 class="character-name">女学生</h4>
-              <p class="character-desc">青少年 · 校服长发</p>
-            </article>
-            <article class="character-card" data-character="girl_office" onclick="selectCharacter('girl_office')" tabindex="0" role="button">
-              <div class="character-preview" id="preview-girl_office" aria-hidden="true"></div>
-              <h4 class="character-name">职场女性</h4>
-              <p class="character-desc">成年 · 职业西装</p>
-            </article>
-          </div>
-        </section>
-
-        <!-- 情绪选择区 -->
-        <section class="selection-section" aria-labelledby="emotion-section-title">
-          <h3 id="emotion-section-title" class="section-label">选择对手情绪</h3>
-
-          <div class="emotion-grid" role="listbox" aria-label="情绪选择">
-            <article class="emotion-card" data-emotion="sadness" onclick="selectEmotion('sadness')" tabindex="0" role="option">
-              <div class="emotion-preview" id="preview-sadness" aria-hidden="true"></div>
-              <h4 class="emotion-name">沮丧</h4>
-              <div class="emotion-meta">
-                <span class="difficulty-badge beginner">入门</span>
-                <span class="emotion-stats">8秒 · 15次</span>
-              </div>
-            </article>
-            <article class="emotion-card" data-emotion="shame" onclick="selectEmotion('shame')" tabindex="0" role="option">
-              <div class="emotion-preview" id="preview-shame" aria-hidden="true"></div>
-              <h4 class="emotion-name">羞耻</h4>
-              <div class="emotion-meta">
-                <span class="difficulty-badge easy">简单</span>
-                <span class="emotion-stats">10秒 · 12次</span>
-              </div>
-            </article>
-            <article class="emotion-card" data-emotion="fear" onclick="selectEmotion('fear')" tabindex="0" role="option">
-              <div class="emotion-preview" id="preview-fear" aria-hidden="true"></div>
-              <h4 class="emotion-name">恐惧</h4>
-              <div class="emotion-meta">
-                <span class="difficulty-badge medium">中等</span>
-                <span class="emotion-stats">6秒 · 18次</span>
-              </div>
-            </article>
-            <article class="emotion-card" data-emotion="anger" onclick="selectEmotion('anger')" tabindex="0" role="option">
-              <div class="emotion-preview" id="preview-anger" aria-hidden="true"></div>
-              <h4 class="emotion-name">愤怒</h4>
-              <div class="emotion-meta">
-                <span class="difficulty-badge medium">中等</span>
-                <span class="emotion-stats">6秒 · 20次</span>
-              </div>
-            </article>
-            <article class="emotion-card" data-emotion="jealousy" onclick="selectEmotion('jealousy')" tabindex="0" role="option">
-              <div class="emotion-preview" id="preview-jealousy" aria-hidden="true"></div>
-              <h4 class="emotion-name">嫉妒</h4>
-              <div class="emotion-meta">
-                <span class="difficulty-badge hard">较高</span>
-                <span class="emotion-stats">5秒 · 22次</span>
-              </div>
-            </article>
-            <article class="emotion-card" data-emotion="anxiety" onclick="selectEmotion('anxiety')" tabindex="0" role="option">
-              <div class="emotion-preview" id="preview-anxiety" aria-hidden="true"></div>
-              <h4 class="emotion-name">焦虑</h4>
-              <div class="emotion-meta">
-                <span class="difficulty-badge hard">较高</span>
-                <span class="emotion-stats">5秒 · 25次</span>
-              </div>
-            </article>
-          </div>
-        </section>
-
-        <!-- 难度信息 -->
-        <aside class="difficulty-info" aria-live="polite">
-          <p id="difficulty-text">当前难度：时间 6秒 | 点击 20次</p>
-        </aside>
+        </div>
       </main>
 
       <footer class="page-footer">
-        <!-- 2个按钮：一行布局 -->
-        <nav class="btn-grid btn-grid-2" aria-label="页面操作">
-          <button class="btn btn-primary" onclick="startBattle()">
+        <nav class="btn-grid btn-grid-2">
+          <button class="btn btn-primary" onclick="startBattleFromSelectors()">
             <span class="btn-text">⚔️ 开始战斗</span>
           </button>
           <button class="btn btn-back" onclick="showPage('home')">
@@ -236,7 +164,7 @@
               <button class="btn btn-attack" id="attack-btn" onclick="handleAttackClick()" aria-label="点击攻击">
                 <span class="btn-text">👆 点击攻击</span>
               </button>
-              <button class="btn btn-ultimate" onclick="useUltimate()" aria-label="使用大招">
+              <button class="btn btn-ultimate" id="ultimate-btn" onclick="useUltimate()" aria-label="使用大招">
                 <span class="btn-text">⚡ 大招</span>
               </button>
               <button class="btn btn-escape" onclick="escapeBattle()" aria-label="逃跑">

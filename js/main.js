@@ -106,59 +106,153 @@ function switchCharacterTab(tabId) {
 }
 
 /**
- * 初始化选择页面
+ * 初始化选择页面（新布局）
  */
 function initSelectPage() {
   // 加载保存的选择
   const settings = Storage.getSettings();
-  selectedCharacter = settings.selectedCharacter;
-  selectedEmotion = settings.selectedEmotion;
+  selectedCharacter = settings.selectedCharacter || 'boy_young';
+  selectedEmotion = settings.selectedEmotion || 'sadness';
 
-  // 根据选中的角色切换Tab
-  const character = CHARACTERS[selectedCharacter];
-  if (character) {
-    const tabId = character.gender === 'female' ? 'female' : 'male';
-    switchCharacterTab(tabId);
+  // 设置下拉选择器的初始值
+  const genderSelect = document.getElementById('gender-select');
+  const styleSelect = document.getElementById('style-select');
+  const emotionSelect = document.getElementById('emotion-select');
+
+  if (genderSelect && styleSelect) {
+    // 根据当前角色设置下拉值
+    const { gender, style } = getCharacterSelectors(selectedCharacter);
+    genderSelect.value = gender;
+    styleSelect.value = style;
   }
 
-  // 更新选中状态
-  updateCharacterSelection(selectedCharacter);
-  updateEmotionSelection(selectedEmotion);
-  updateDifficultyInfo();
+  if (emotionSelect) {
+    emotionSelect.value = selectedEmotion;
+  }
 
   // 绘制预览
-  drawCharacterPreviews();
-  drawEmotionPreviews();
+  drawLargeCharacterPreview();
+  drawLargeEmotionPreview();
 }
 
 /**
- * 绘制角色预览
+ * 根据角色ID获取性别和服装选择器值
  */
-function drawCharacterPreviews() {
-  Object.keys(CHARACTERS).forEach(charId => {
-    const previewEl = document.getElementById('preview-' + charId);
-    if (!previewEl) return;
+function getCharacterSelectors(charId) {
+  const mapping = {
+    'boy_young': { gender: 'male', style: 'young' },
+    'boy_student': { gender: 'male', style: 'student' },
+    'boy_worker': { gender: 'male', style: 'worker' },
+    'girl_young': { gender: 'female', style: 'young' },
+    'girl_student': { gender: 'female', style: 'student' },
+    'girl_office': { gender: 'female', style: 'worker' }
+  };
+  return mapping[charId] || { gender: 'male', style: 'young' };
+}
 
-    const char = CHARACTERS[charId];
-    // Canvas尺寸与角色尺寸匹配
-    const canvas = document.createElement('canvas');
-    canvas.width = 64;
-    canvas.height = char.height || 96;  // 使用角色实际高度
-    canvas.style.width = '100%';
-    canvas.style.height = '100%';
-    canvas.style.objectFit = 'contain';
+/**
+ * 根据选择器值获取角色ID
+ */
+function getCharacterIdFromSelectors(gender, style) {
+  const mapping = {
+    'male_young': 'boy_young',
+    'male_student': 'boy_student',
+    'male_worker': 'boy_worker',
+    'female_young': 'girl_young',
+    'female_student': 'girl_student',
+    'female_worker': 'girl_office'
+  };
+  return mapping[gender + '_' + style] || 'boy_young';
+}
 
-    const ctx = canvas.getContext('2d');
-    ctx.imageSmoothingEnabled = false;
+/**
+ * 从选择器更新角色预览
+ */
+function updateCharacterFromSelectors() {
+  const genderSelect = document.getElementById('gender-select');
+  const styleSelect = document.getElementById('style-select');
 
-    // 绘制位置：x居中，y在底部（角色从底部向上绘制）
-    const drawY = canvas.height - 4;  // 底部留4px边距
-    drawSimpleCharacter(ctx, charId, 32, drawY, 'idle');
+  if (genderSelect && styleSelect) {
+    selectedCharacter = getCharacterIdFromSelectors(genderSelect.value, styleSelect.value);
+    drawLargeCharacterPreview();
 
-    // 替换预览元素内容
-    previewEl.innerHTML = '';
-    previewEl.appendChild(canvas);
-  });
+    // 保存选择
+    Storage.saveSettings({ selectedCharacter: selectedCharacter });
+  }
+}
+
+/**
+ * 从选择器更新情绪预览
+ */
+function updateEmotionPreview() {
+  const emotionSelect = document.getElementById('emotion-select');
+  if (emotionSelect) {
+    selectedEmotion = emotionSelect.value;
+    drawLargeEmotionPreview();
+
+    // 保存选择
+    Storage.saveSettings({ selectedEmotion: selectedEmotion });
+  }
+}
+
+/**
+ * 绘制大角色预览
+ */
+function drawLargeCharacterPreview() {
+  const previewEl = document.getElementById('character-preview-large');
+  if (!previewEl) return;
+
+  previewEl.innerHTML = '';
+
+  const char = CHARACTERS[selectedCharacter];
+  const canvas = document.createElement('canvas');
+  canvas.width = 80;
+  canvas.height = 120;
+  canvas.style.width = '100%';
+  canvas.style.height = '100%';
+
+  const ctx = canvas.getContext('2d');
+  ctx.imageSmoothingEnabled = false;
+
+  // 绘制角色
+  drawSimpleCharacter(ctx, selectedCharacter, 40, 110, 'idle');
+
+  previewEl.appendChild(canvas);
+}
+
+/**
+ * 绘制大情绪预览
+ */
+function drawLargeEmotionPreview() {
+  const previewEl = document.getElementById('emotion-preview-large');
+  if (!previewEl) return;
+
+  previewEl.innerHTML = '';
+
+  const canvas = document.createElement('canvas');
+  canvas.width = 80;
+  canvas.height = 80;
+  canvas.style.width = '100%';
+  canvas.style.height = '100%';
+
+  const ctx = canvas.getContext('2d');
+  ctx.imageSmoothingEnabled = false;
+
+  // 绘制情绪
+  drawSimpleEmotion(ctx, selectedEmotion, 40, 40, 'idle');
+
+  previewEl.appendChild(canvas);
+}
+
+/**
+ * 从选择器开始战斗
+ */
+function startBattleFromSelectors() {
+  const characterName = document.getElementById('character-name-input')?.value || '';
+  const emotionName = document.getElementById('emotion-name-input')?.value || '';
+
+  startPhaserGame(selectedCharacter, selectedEmotion, characterName, emotionName);
+  showPage('battle');
 }
 
 /**
