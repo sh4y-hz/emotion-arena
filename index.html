@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="description" content="情绪擂台 - 一款16-bit像素风格的情绪调节小游戏">
+  <meta name="theme-color" content="#1a1a2e">
+  <title>情绪擂台 - 像素风格斗游戏</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <!-- Phaser.js 游戏引擎 -->
+  <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
+</head>
+<body>
+  <div id="app" role="application" aria-label="情绪擂台游戏">
+
+    <!-- ========== 首页界面 ========== -->
+    <section id="page-home" class="page active" aria-labelledby="home-title">
+      <header class="page-header">
+        <h1 id="home-title" class="game-title">情绪擂台</h1>
+        <p class="game-subtitle">"面对情绪，不是逃避，而是勇敢地与它对话"</p>
+        <!-- 像素风格battle logo -->
+        <div class="battle-logo" aria-hidden="true">
+          <canvas id="battle-logo-canvas" width="280" height="60"></canvas>
+        </div>
+      </header>
+
+      <!-- 温馨提示居中不换行 -->
+      <div class="home-warning-wrapper">
+        <article class="warning-box warning-center" role="alert">
+          <p class="warning-text-single">温馨提示：本游戏仅供娱乐和轻度情绪调节，如有严重情绪问题请寻求专业心理咨询帮助</p>
+        </article>
+      </div>
+
+      <footer class="page-footer">
+        <!-- 6个按钮：三行布局 -->
+        <nav class="btn-grid btn-grid-6" aria-label="主导航">
+          <button class="btn btn-primary" onclick="showPage('select')">
+            <span class="btn-text">🎮 开始游戏</span>
+          </button>
+          <button class="btn btn-secondary" onclick="showPage('stats')">
+            <span class="btn-text">📊 战斗统计</span>
+          </button>
+          <button class="btn btn-secondary" onclick="showPage('calendar')">
+            <span class="btn-text">📅 战斗日历</span>
+          </button>
+          <button class="btn btn-secondary" onclick="showPage('settings')">
+            <span class="btn-text">⚙️ 游戏设置</span>
+          </button>
+          <button class="btn btn-secondary" onclick="showPage('history')">
+            <span class="btn-text">📜 查看历史</span>
+          </button>
+          <button class="btn btn-secondary" onclick="showPage('achievements')">
+            <span class="btn-text">🏆 成就展示</span>
+          </button>
+        </nav>
+      </footer>
+    </section>
+
+    <!-- ========== 角色选择界面 ========== -->
+    <section id="page-select" class="page" aria-labelledby="select-title">
+      <header class="page-header">
+        <h2 id="select-title" class="page-title">选择角色与对手</h2>
+      </header>
+
+      <main class="page-content scrollable">
+        <!-- 角色选择区 -->
+        <section class="selection-section" aria-labelledby="character-section-title">
+          <h3 id="character-section-title" class="section-label">选择你的角色</h3>
+
+          <!-- 命名区域（放在角色选择标题下） -->
+          <div class="naming-row">
+            <div class="name-input-inline">
+              <label for="character-name-input">角色昵称</label>
+              <input type="text" id="character-name-input" placeholder="给角色起个名字" maxlength="10">
+            </div>
+            <div class="name-input-inline">
+              <label for="emotion-name-input">情绪名称</label>
+              <input type="text" id="emotion-name-input" placeholder="给情绪起个名字" maxlength="10">
+            </div>
+          </div>
+
+          <div class="tab-buttons" role="tablist">
+            <button class="tab-btn active" role="tab" aria-selected="true" data-tab="male" onclick="switchCharacterTab('male')">
+              男性角色
+            </button>
+            <button class="tab-btn" role="tab" aria-selected="false" data-tab="female" onclick="switchCharacterTab('female')">
+              女性角色
+            </button>
+          </div>
+
+          <!-- 男性角色 -->
+          <div class="character-grid tab-panel" id="tab-male" role="tabpanel">
+            <article class="character-card" data-character="boy_young" onclick="selectCharacter('boy_young')" tabindex="0" role="button">
+              <div class="character-preview" id="preview-boy_young" aria-hidden="true"></div>
+              <h4 class="character-name">活泼少年</h4>
+              <p class="character-desc">儿童 · T恤短裤</p>
+            </article>
+            <article class="character-card" data-character="boy_student" onclick="selectCharacter('boy_student')" tabindex="0" role="button">
+              <div class="character-preview" id="preview-boy_student" aria-hidden="true"></div>
+              <h4 class="character-name">学生</h4>
+              <p class="character-desc">青少年 · 校服眼镜</p>
+            </article>
+            <article class="character-card" data-character="boy_worker" onclick="selectCharacter('boy_worker')" tabindex="0" role="button">
+              <div class="character-preview" id="preview-boy_worker" aria-hidden="true"></div>
+              <h4 class="character-name">上班族</h4>
+              <p class="character-desc">成年 · 西装领带</p>
+            </article>
+          </div>
+
+          <!-- 女性角色 -->
+          <div class="character-grid tab-panel hidden" id="tab-female" role="tabpanel">
+            <article class="character-card" data-character="girl_young" onclick="selectCharacter('girl_young')" tabindex="0" role="button">
+              <div class="character-preview" id="preview-girl_young" aria-hidden="true"></div>
+              <h4 class="character-name">可爱女孩</h4>
+              <p class="character-desc">儿童 · 连衣裙辫子</p>
+            </article>
+            <article class="character-card" data-character="girl_student" onclick="selectCharacter('girl_student')" tabindex="0" role="button">
+              <div class="character-preview" id="preview-girl_student" aria-hidden="true"></div>
+              <h4 class="character-name">女学生</h4>
+              <p class="character-desc">青少年 · 校服长发</p>
+            </article>
+            <article class="character-card" data-character="girl_office" onclick="selectCharacter('girl_office')" tabindex="0" role="button">
+              <div class="character-preview" id="preview-girl_office" aria-hidden="true"></div>
+              <h4 class="character-name">职场女性</h4>
+              <p class="character-desc">成年 · 职业西装</p>
+            </article>
+          </div>
+        </section>
+
+        <!-- 情绪选择区 -->
+        <section class="selection-section" aria-labelledby="emotion-section-title">
+          <h3 id="emotion-section-title" class="section-label">选择对手情绪</h3>
+
+          <div class="emotion-grid" role="listbox" aria-label="情绪选择">
+            <article class="emotion-card" data-emotion="sadness" onclick="selectEmotion('sadness')" tabindex="0" role="option">
+              <div class="emotion-preview" id="preview-sadness" aria-hidden="true"></div>
+              <h4 class="emotion-name">沮丧</h4>
+              <div class="emotion-meta">
+                <span class="difficulty-badge beginner">入门</span>
+                <span class="emotion-stats">8秒 · 15次</span>
+              </div>
+            </article>
+            <article class="emotion-card" data-emotion="shame" onclick="selectEmotion('shame')" tabindex="0" role="option">
+              <div class="emotion-preview" id="preview-shame" aria-hidden="true"></div>
+              <h4 class="emotion-name">羞耻</h4>
+              <div class="emotion-meta">
+                <span class="difficulty-badge easy">简单</span>
+                <span class="emotion-stats">10秒 · 12次</span>
+              </div>
+            </article>
+            <article class="emotion-card" data-emotion="fear" onclick="selectEmotion('fear')" tabindex="0" role="option">
+              <div class="emotion-preview" id="preview-fear" aria-hidden="true"></div>
+              <h4 class="emotion-name">恐惧</h4>
+              <div class="emotion-meta">
+                <span class="difficulty-badge medium">中等</span>
+                <span class="emotion-stats">6秒 · 18次</span>
+              </div>
+            </article>
+            <article class="emotion-card" data-emotion="anger" onclick="selectEmotion('anger')" tabindex="0" role="option">
+              <div class="emotion-preview" id="preview-anger" aria-hidden="true"></div>
+              <h4 class="emotion-name">愤怒</h4>
+              <div class="emotion-meta">
+                <span class="difficulty-badge medium">中等</span>
+                <span class="emotion-stats">6秒 · 20次</span>
+              </div>
+            </article>
+            <article class="emotion-card" data-emotion="jealousy" onclick="selectEmotion('jealousy')" tabindex="0" role="option">
+              <div class="emotion-preview" id="preview-jealousy" aria-hidden="true"></div>
+              <h4 class="emotion-name">嫉妒</h4>
+              <div class="emotion-meta">
+                <span class="difficulty-badge hard">较高</span>
+                <span class="emotion-stats">5秒 · 22次</span>
+              </div>
+            </article>
+            <article class="emotion-card" data-emotion="anxiety" onclick="selectEmotion('anxiety')" tabindex="0" role="option">
+              <div class="emotion-preview" id="preview-anxiety" aria-hidden="true"></div>
+              <h4 class="emotion-name">焦虑</h4>
+              <div class="emotion-meta">
+                <span class="difficulty-badge hard">较高</span>
+                <span class="emotion-stats">5秒 · 25次</span>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <!-- 难度信息 -->
+        <aside class="difficulty-info" aria-live="polite">
+          <p id="difficulty-text">当前难度：时间 6秒 | 点击 20次</p>
+        </aside>
+      </main>
+
+      <footer class="page-footer">
+        <!-- 2个按钮：一行布局 -->
+        <nav class="btn-grid btn-grid-2" aria-label="页面操作">
+          <button class="btn btn-primary" onclick="startBattle()">
+            <span class="btn-text">⚔️ 开始战斗</span>
+          </button>
+          <button class="btn btn-back" onclick="showPage('home')">
+            <span class="btn-text">← 返回首页</span>
+          </button>
+        </nav>
+      </footer>
+    </section>
+
+    <!-- ========== 战斗界面 ========== -->
+    <section id="page-battle" class="page" aria-labelledby="battle-title">
+      <main class="battle-container">
+        <!-- Phaser游戏容器（Phaser会自动创建Canvas） -->
+        <div id="phaser-container" aria-label="战斗画面"></div>
+
+        <aside class="battle-ui">
+          <header class="battle-header">
+            <h2 id="battle-title" class="sr-only">战斗进行中</h2>
+            <div class="battle-stats" role="status" aria-live="polite">
+              <div class="stat-item">
+                <span class="stat-label">进度</span>
+                <span class="stat-value" id="click-progress">0/20</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-label">用时</span>
+                <span class="stat-value" id="battle-timer">0.0秒</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-label">距离</span>
+                <span class="stat-value" id="distance-info">0px</span>
+              </div>
+            </div>
+          </header>
+
+          <div class="battle-actions">
+            <!-- 3个按钮：一行布局 -->
+            <nav class="btn-grid btn-grid-3">
+              <button class="btn btn-attack" id="attack-btn" onclick="handleAttackClick()" aria-label="点击攻击">
+                <span class="btn-text">👆 点击攻击</span>
+              </button>
+              <button class="btn btn-ultimate" onclick="useUltimate()" aria-label="使用大招">
+                <span class="btn-text">⚡ 大招</span>
+              </button>
+              <button class="btn btn-escape" onclick="escapeBattle()" aria-label="逃跑">
+                <span class="btn-text">🏃 逃跑</span>
+              </button>
+            </nav>
+          </div>
+        </aside>
+      </main>
+    </section>
+
+    <!-- ========== 结算界面 ========== -->
+    <section id="page-result" class="page" aria-labelledby="result-title">
+      <header class="page-header">
+        <h2 id="result-title" class="sr-only">战斗结算</h2>
+      </header>
+
+      <main class="page-content">
+        <article id="result-content" class="result-card" aria-live="polite">
+          <!-- 动态填充 -->
+        </article>
+
+        <article class="result-encouragement">
+          <p id="encouragement-text"></p>
+        </article>
+
+        <article id="achievement-unlock" class="achievement-notice" style="display: none;" role="alert">
+          <h3 class="achievement-title">🎉 成就解锁!</h3>
+          <p class="achievement-name" id="unlock-name"></p>
+        </article>
+
+        <!-- 心得记录区域 -->
+        <section class="journal-section" id="journal-section">
+          <h3 class="journal-title">记录本次体验</h3>
+          <div class="tag-selector" role="group" aria-label="选择标签">
+            <button class="tag-btn" data-tag="work" onclick="selectTag('work')">💼 工作</button>
+            <button class="tag-btn" data-tag="family" onclick="selectTag('family')">👨‍👩‍👧 家庭</button>
+            <button class="tag-btn" data-tag="relationship" onclick="selectTag('relationship')">❤️ 情感</button>
+            <button class="tag-btn" data-tag="luck" onclick="selectTag('luck')">🎲 纯倒霉</button>
+          </div>
+          <textarea id="journal-input" placeholder="记录本次游戏的心得和体验..." rows="4" aria-label="心得内容"></textarea>
+          <button class="btn btn-primary btn-small" onclick="saveJournal()">💾 保存心得</button>
+        </section>
+      </main>
+
+      <footer class="page-footer">
+        <!-- 4个按钮：两行布局 -->
+        <nav class="btn-grid btn-grid-4" aria-label="结算后操作">
+          <button class="btn btn-breathing" onclick="showPage('breathing')">
+            <span class="btn-text">🌬️ 呼吸练习</span>
+          </button>
+          <button class="btn btn-primary" onclick="showPage('select')">
+            <span class="btn-text">🔄 再来一局</span>
+          </button>
+          <button class="btn btn-secondary" onclick="showPage('history')">
+            <span class="btn-text">📜 查看历史</span>
+          </button>
+          <button class="btn btn-back" onclick="showPage('home')">
+            <span class="btn-text">🏠 返回首页</span>
+          </button>
+        </nav>
+      </footer>
+    </section>
+
+    <!-- ========== 呼吸练习界面 ========== -->
+    <section id="page-breathing" class="page" aria-labelledby="breathing-title">
+      <header class="page-header">
+        <h2 id="breathing-title" class="page-title">呼吸练习</h2>
+        <p class="breathing-subtitle">跟随圆圈的节奏，放松身心</p>
+      </header>
+
+      <main class="page-content breathing-content">
+        <div class="breathing-circle-container" role="img" aria-label="呼吸引导圆圈">
+          <div class="breathing-circle" id="breathing-circle"></div>
+          <div class="breathing-info">
+            <p class="breathing-phase" id="breathing-phase" aria-live="polite">吸气...</p>
+            <p class="breathing-count" id="breathing-count">4秒</p>
+          </div>
+        </div>
+
+        <div class="breathing-progress" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="8">
+          <span class="progress-label">进度:</span>
+          <span class="progress-value" id="breathing-progress-num">0</span>
+          <span class="progress-max">/8轮</span>
+        </div>
+      </main>
+
+      <footer class="page-footer">
+        <!-- 1个按钮：居中布局 -->
+        <nav class="btn-grid btn-grid-1">
+          <button class="btn btn-secondary" onclick="endBreathing()">
+            <span class="btn-text">✓ 结束练习</span>
+          </button>
+        </nav>
+      </footer>
+    </section>
+
+    <!-- ========== 设置界面 ========== -->
+    <section id="page-settings" class="page" aria-labelledby="settings-title">
+      <header class="page-header">
+        <h2 id="settings-title" class="page-title">游戏设置</h2>
+      </header>
+
+      <main class="page-content">
+        <div class="settings-list" role="list">
+          <div class="setting-item" role="listitem">
+            <div class="setting-info">
+              <span class="setting-icon">🔊</span>
+              <span class="setting-label">音效</span>
+            </div>
+            <button class="toggle-btn" id="sound-toggle" onclick="toggleSound()" aria-pressed="true">
+              开启
+            </button>
+          </div>
+          <div class="setting-item" role="listitem">
+            <div class="setting-info">
+              <span class="setting-icon">📳</span>
+              <span class="setting-label">震动</span>
+            </div>
+            <button class="toggle-btn" id="vibration-toggle" onclick="toggleVibration()" aria-pressed="true">
+              开启
+            </button>
+          </div>
+        </div>
+      </main>
+
+      <footer class="page-footer">
+        <!-- 2个按钮：一行布局 -->
+        <nav class="btn-grid btn-grid-2" aria-label="设置操作">
+          <button class="btn btn-primary" onclick="saveSettings()">
+            <span class="btn-text">💾 保存设置</span>
+          </button>
+          <button class="btn btn-back" onclick="showPage('home')">
+            <span class="btn-text">← 返回首页</span>
+          </button>
+        </nav>
+      </footer>
+    </section>
+
+    <!-- ========== 历史记录界面 ========== -->
+    <section id="page-history" class="page" aria-labelledby="history-title">
+      <header class="page-header">
+        <h2 id="history-title" class="page-title">战斗记录</h2>
+      </header>
+
+      <main class="page-content scrollable">
+        <div id="history-list" class="history-list" role="list" aria-live="polite">
+          <!-- 动态填充 -->
+        </div>
+
+        <aside class="warning-box small" role="note">
+          <p>浏览器清理缓存可能导致数据丢失，建议定期截图保存重要记录</p>
+        </aside>
+      </main>
+
+      <footer class="page-footer">
+        <!-- 1个按钮：居中布局 -->
+        <nav class="btn-grid btn-grid-1">
+          <button class="btn btn-back" onclick="showPage('home')">
+            <span class="btn-text">← 返回首页</span>
+          </button>
+        </nav>
+      </footer>
+    </section>
+
+    <!-- ========== 成就界面 ========== -->
+    <section id="page-achievements" class="page" aria-labelledby="achievements-title">
+      <header class="page-header">
+        <h2 id="achievements-title" class="page-title">成就展示</h2>
+      </header>
+
+      <main class="page-content scrollable">
+        <div id="achievements-list" class="achievements-list" role="list">
+          <!-- 动态填充 -->
+        </div>
+      </main>
+
+      <footer class="page-footer">
+        <!-- 1个按钮：居中布局 -->
+        <nav class="btn-grid btn-grid-1">
+          <button class="btn btn-back" onclick="showPage('home')">
+            <span class="btn-text">← 返回首页</span>
+          </button>
+        </nav>
+      </footer>
+    </section>
+
+    <!-- ========== 统计界面 ========== -->
+    <section id="page-stats" class="page" aria-labelledby="stats-title">
+      <header class="page-header">
+        <h2 id="stats-title" class="page-title">战斗统计</h2>
+      </header>
+
+      <main class="page-content scrollable">
+        <!-- 总览统计 -->
+        <div class="stats-overview">
+          <div class="stat-card">
+            <span class="stat-icon">⚔️</span>
+            <span class="stat-value" id="total-battles">0</span>
+            <span class="stat-label">总战斗</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-icon">🏆</span>
+            <span class="stat-value" id="total-victories">0</span>
+            <span class="stat-label">胜利</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-icon">📊</span>
+            <span class="stat-value" id="win-rate">0%</span>
+            <span class="stat-label">胜率</span>
+          </div>
+        </div>
+
+        <!-- 情绪胜率统计 -->
+        <div class="emotion-stats-section">
+          <h3 class="section-label">各情绪胜率</h3>
+          <div id="emotion-stats-list" class="emotion-stats-list">
+            <!-- 动态填充 -->
+          </div>
+        </div>
+      </main>
+
+      <footer class="page-footer">
+        <nav class="btn-grid btn-grid-2">
+          <button class="btn btn-secondary" onclick="showPage('calendar')">
+            <span class="btn-text">📅 查看日历</span>
+          </button>
+          <button class="btn btn-back" onclick="showPage('home')">
+            <span class="btn-text">← 返回首页</span>
+          </button>
+        </nav>
+      </footer>
+    </section>
+
+    <!-- ========== 日历界面 ========== -->
+    <section id="page-calendar" class="page" aria-labelledby="calendar-title">
+      <header class="page-header">
+        <h2 id="calendar-title" class="page-title">战斗日历</h2>
+      </header>
+
+      <main class="page-content">
+        <!-- 月份导航 -->
+        <div class="calendar-nav">
+          <button class="btn btn-small btn-secondary" onclick="prevMonth()">◀ 上月</button>
+          <span id="calendar-month-label" class="month-label">2026年4月</span>
+          <button class="btn btn-small btn-secondary" onclick="nextMonth()">下月 ▶</button>
+        </div>
+
+        <!-- 日历网格 -->
+        <div id="calendar-grid" class="calendar-grid">
+          <!-- 动态填充 -->
+        </div>
+
+        <!-- 当日战斗记录 -->
+        <div id="day-battles" class="day-battles">
+          <h3 id="day-battles-title" class="section-label">选择日期查看记录</h3>
+          <div id="day-battles-list" class="day-battles-list">
+            <!-- 动态填充 -->
+          </div>
+        </div>
+      </main>
+
+      <footer class="page-footer">
+        <nav class="btn-grid btn-grid-2">
+          <button class="btn btn-secondary" onclick="showPage('stats')">
+            <span class="btn-text">📊 查看统计</span>
+          </button>
+          <button class="btn btn-back" onclick="showPage('home')">
+            <span class="btn-text">← 返回首页</span>
+          </button>
+        </nav>
+      </footer>
+    </section>
+
+    <!-- ========== 弹窗 ========== -->
+    <div id="note-modal" class="modal" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <div class="modal-backdrop" onclick="closeNoteModal()"></div>
+      <div class="modal-content">
+        <header class="modal-header">
+          <h3 id="modal-title">编辑备注</h3>
+          <button class="modal-close" onclick="closeNoteModal()" aria-label="关闭弹窗">×</button>
+        </header>
+        <main class="modal-body">
+          <textarea id="note-input" placeholder="输入备注内容..." aria-label="备注内容"></textarea>
+        </main>
+        <footer class="modal-footer">
+          <!-- 2个按钮：一行布局 -->
+          <nav class="btn-grid btn-grid-2">
+            <button class="btn btn-primary" onclick="saveNote()">
+              <span class="btn-text">保存</span>
+            </button>
+            <button class="btn btn-secondary" onclick="closeNoteModal()">
+              <span class="btn-text">取消</span>
+            </button>
+          </nav>
+        </footer>
+      </div>
+    </div>
+  </div>
+
+  <!-- JavaScript 文件 -->
+  <script src="js/storage.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/phaser-game.js"></script>
+  <script src="js/achievements.js"></script>
+  <script src="js/breathing.js"></script>
+  <script src="js/stats.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
