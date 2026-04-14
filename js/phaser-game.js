@@ -183,10 +183,10 @@ const EMOTIONS = {
 
 const GAME_CONSTANTS = {
   // 速度和时间常量（固定）
-  PLAYER_SPEED: 100,
-  EMOTION_SPEED: 100,
+  PLAYER_SPEED: 150,        // 加快玩家速度
+  EMOTION_SPEED: 120,       // 加快情绪速度
   ATTACK_TIME: 250,
-  WAIT_TIME: 400,
+  WAIT_TIME: 150,           // 减少等待时间（原来400ms）
   IDLE_TIME: 800,
 
   // 边界偏移（相对于画布边缘）
@@ -573,6 +573,12 @@ class BattleScene extends Phaser.Scene {
     this.bubbleTextContent = '';
     this.bubbleAliveTime = 0;
 
+    // ===== 伤害特效系统 =====
+    this.damageNumbers = [];  // 伤害数字列表 {x, y, value, time, color}
+    this.hitFlashAlpha = 0;   // 命中闪光透明度
+    this.screenShakeOffset = {x: 0, y: 0};  // 屏幕震动偏移
+    this.shakeDuration = 0;   // 震动持续时间
+
     // ===== 位置（手动管理，基于画布尺寸动态计算） =====
     this.updateLayoutPositions();
 
@@ -716,6 +722,10 @@ class BattleScene extends Phaser.Scene {
 
     // 更新气泡位置（跟随角色/情绪）
     this.updateBubblePosition(delta);
+
+    // ===== 更新和绘制伤害特效 =====
+    this.updateEffects(delta);
+    this.drawEffects();
 
     // 绘制血条（在Phaser canvas内）
     this.drawUI();
@@ -956,6 +966,11 @@ class BattleScene extends Phaser.Scene {
     this.emotionHp = Math.max(0, this.emotionHp - damage);
     this.clicks++;
 
+    // ===== 伤害特效 =====
+    this.showDamageNumber(this.emotionX, this.emotionY - 40, damage, '#e74c3c');
+    this.triggerHitFlash();
+    this.triggerScreenShake(8, 150);
+
     // 显示情绪挨打气泡
     this.showBubble('emotion', this.getEmotionHitMessage());
 
@@ -987,6 +1002,11 @@ class BattleScene extends Phaser.Scene {
     const damage = 5 + Math.floor(Math.random() * 3);
     this.playerHp = Math.max(0, this.playerHp - damage);
 
+    // ===== 伤害特效 =====
+    this.showDamageNumber(this.playerX, this.playerY - 40, damage, '#f39c12');
+    this.triggerHitFlash();
+    this.triggerScreenShake(5, 100);
+
     // 显示玩家挨打气泡（鼓励话术）
     this.showBubble('player', this.getPlayerHitMessage());
 
@@ -1006,8 +1026,8 @@ class BattleScene extends Phaser.Scene {
   startEmotionRetreat() {
     this.emotionState = 'retreating';
     this.emotionVelocityX = GAME_CONSTANTS.EMOTION_SPEED;
-    // 设置随机延迟2-4秒，情绪后退结束后等待这段时间再前进
-    this.emotionAdvanceDelay = 2000 + Math.random() * 2000; // 2-4秒
+    // 设置随机延迟0.5-1.5秒（原来2-4秒太长）
+    this.emotionAdvanceDelay = 500 + Math.random() * 1000;
   }
 
   // ===== 气泡系统 =====
@@ -1146,6 +1166,94 @@ class BattleScene extends Phaser.Scene {
       '😱💀 恐怖！'
     ];
     return messages[Math.floor(Math.random() * messages.length)];
+  }
+
+  // ===== 伤害特效系统 =====
+
+  // 显示伤害数字（浮动向上）
+  showDamageNumber(x, y, value, color) {
+    this.damageNumbers.push({
+      x: x,
+      y: y,
+      value: value,
+      time: 600,  // 显示600ms
+      color: color,
+      offsetY: 0
+    });
+  }
+
+  // 触发命中闪光
+  triggerHitFlash() {
+    this.hitFlashAlpha = 0.6;  // 闪光强度
+  }
+
+  // 触发屏幕震动
+  triggerScreenShake(intensity, duration) {
+    this.shakeDuration = duration;
+    this.screenShakeOffset = {x: intensity, y: intensity};
+  }
+
+  // 更新特效（每帧调用）
+  updateEffects(delta) {
+    // 更新伤害数字
+    for (let i = this.damageNumbers.length - 1; i >= 0; i--) {
+      const dn = this.damageNumbers[i];
+      dn.time -= delta;
+      dn.offsetY -= delta * 0.05;  // 向上浮动
+      if (dn.time <= 0) {
+        this.damageNumbers.splice(i, 1);
+      }
+    }
+
+    // 更新命中闪光（逐渐衰减）
+    if (this.hitFlashAlpha > 0) {
+      this.hitFlashAlpha -= delta * 0.003;
+      if (this.hitFlashAlpha < 0) this.hitFlashAlpha = 0;
+    }
+
+    // 更新屏幕震动
+    if (this.shakeDuration > 0) {
+      this.shakeDuration -= delta;
+      // 随机震动偏移
+      const intensity = Math.max(1, this.shakeDuration / 50);
+      this.screenShakeOffset.x = (Math.random() - 0.5) * intensity * 2;
+      this.screenShakeOffset.y = (Math.random() - 0.5) * intensity * 2;
+    } else {
+      this.screenShakeOffset = {x: 0, y: 0};
+    }
+  }
+
+  // 绘制特效（在drawCharacters之后调用）
+  drawEffects() {
+    // 绘制命中闪光（红色半透明覆盖）
+    if (this.hitFlashAlpha > 0) {
+      const flashGraphics = this.add.graphics();
+      flashGraphics.fillStyle(0xff0000, this.hitFlashAlpha);
+      flashGraphics.fillRect(0, 0, this.gameWidth, this.gameHeight);
+      // 下帧自动清除（因为每帧重绘）
+      flashGraphics.setDepth(100);
+      this.time.delayedCall(50, () => flashGraphics.destroy());
+    }
+
+    // 绘制伤害数字
+    for (const dn of this.damageNumbers) {
+      const alpha = Math.min(1, dn.time / 300);
+      const text = this.add.text(
+        dn.x + this.screenShakeOffset.x,
+        dn.y + dn.offsetY + this.screenShakeOffset.y,
+        `-${dn.value}`,
+        {
+          fontFamily: '"Press Start 2P"',
+          fontSize: '16px',
+          color: dn.color,
+          stroke: '#000',
+          strokeThickness: 2
+        }
+      ).setOrigin(0.5).setAlpha(alpha).setDepth(50);
+
+      // 下帧清除
+      this.time.delayedCall(50, () => text.destroy());
+    }
   }
 
   // 获取情绪大招反应消息
