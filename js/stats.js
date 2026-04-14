@@ -18,14 +18,78 @@ const StatsCalendar = {
     // 总览统计
     const totalBattles = battles.length;
     const victories = battles.filter(b => b.result === 'victory').length;
+    const defeats = battles.filter(b => b.result === 'defeat').length;
+    const escapes = battles.filter(b => b.result === 'escape').length;
     const winRate = totalBattles > 0 ? Math.round((victories / totalBattles) * 100) : 0;
 
     document.getElementById('total-battles').textContent = totalBattles;
     document.getElementById('total-victories').textContent = victories;
     document.getElementById('win-rate').textContent = winRate + '%';
 
+    // 绘制胜率饼图
+    this.drawWinRatePieChart(victories, defeats, escapes);
+
     // 各情绪胜率统计
     this.renderEmotionStats(battles);
+  },
+
+  // 绘制胜率饼图
+  drawWinRatePieChart(victories, defeats, escapes) {
+    const canvas = document.getElementById('win-rate-chart');
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    const total = victories + defeats + escapes;
+    if (total === 0) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#888';
+      ctx.font = '10px "Press Start 2P"';
+      ctx.textAlign = 'center';
+      ctx.fillText('无数据', canvas.width / 2, canvas.height / 2);
+      return;
+    }
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 2;
+    const radius = Math.min(centerX, centerY) - 20;
+
+    // 颜色
+    const colors = ['#27ae60', '#e74c3c', '#f39c12']; // 胜利、失败、逃跑
+    const data = [victories, defeats, escapes];
+    const labels = ['胜利', '失败', '逃跑'];
+
+    // 绘制饼图
+    let startAngle = -Math.PI / 2;
+    data.forEach((value, index) => {
+      if (value === 0) return;
+      const sliceAngle = (value / total) * 2 * Math.PI;
+
+      ctx.beginPath();
+      ctx.moveTo(centerX, centerY);
+      ctx.arc(centerX, centerY, radius, startAngle, startAngle + sliceAngle);
+      ctx.closePath();
+      ctx.fillStyle = colors[index];
+      ctx.fill();
+
+      // 绘制标签
+      const labelAngle = startAngle + sliceAngle / 2;
+      const labelX = centerX + (radius * 0.6) * Math.cos(labelAngle);
+      const labelY = centerY + (radius * 0.6) * Math.sin(labelAngle);
+      ctx.fillStyle = '#fff';
+      ctx.font = '8px "Press Start 2P"';
+      ctx.textAlign = 'center';
+      ctx.fillText(`${Math.round(value/total*100)}%`, labelX, labelY);
+
+      startAngle += sliceAngle;
+    });
+
+    // 绘制中心文字
+    ctx.fillStyle = '#eee';
+    ctx.font = '12px "Press Start 2P"';
+    ctx.textAlign = 'center';
+    ctx.fillText(`${total}局`, centerX, centerY);
   },
 
   // 渲染各情绪统计
@@ -70,6 +134,9 @@ const StatsCalendar = {
       }
     });
 
+    // 绘制情绪战斗次数柱状图
+    this.drawEmotionBarChart(emotionStats);
+
     // 渲染列表
     listEl.innerHTML = Object.keys(emotionStats).map(emotionId => {
       const stat = emotionStats[emotionId];
@@ -90,6 +157,40 @@ const StatsCalendar = {
         </div>
       `;
     }).join('');
+  },
+
+  // 绘制情绪战斗次数柱状图
+  drawEmotionBarChart(emotionStats) {
+    const canvas = document.getElementById('emotion-battle-chart');
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    const emotions = Object.keys(emotionStats);
+    const maxTotal = Math.max(...emotions.map(e => emotionStats[e].total), 1);
+
+    const barWidth = canvas.width / (emotions.length + 1);
+    const startX = barWidth;
+    const maxHeight = canvas.height - 30;
+
+    emotions.forEach((emotionId, index) => {
+      const stat = emotionStats[emotionId];
+      const barHeight = (stat.total / maxTotal) * maxHeight;
+      const x = startX + index * barWidth;
+      const y = canvas.height - barHeight - 10;
+
+      // 绘制柱子
+      const colorHex = '#' + stat.color.toString(16).padStart(6, '0');
+      ctx.fillStyle = colorHex;
+      ctx.fillRect(x, y, barWidth - 10, barHeight);
+
+      // 绘制数字
+      ctx.fillStyle = '#eee';
+      ctx.font = '8px "Press Start 2P"';
+      ctx.textAlign = 'center';
+      ctx.fillText(stat.total.toString(), x + (barWidth - 10) / 2, y - 5);
+    });
   },
 
   // ===== 日历功能 =====

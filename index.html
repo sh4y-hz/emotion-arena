@@ -66,22 +66,60 @@
       </header>
 
       <main class="page-content">
-        <!-- 选择器区域 -->
-        <div class="selector-row">
+        <!-- 下拉选择器独立行 -->
+        <div class="selectors-standalone-row">
+          <!-- 角色选择器组 -->
           <div class="selector-group">
-            <label for="gender-select">性别</label>
-            <select id="gender-select" onchange="updateCharacterFromSelectors()">
-              <option value="male">男性</option>
-              <option value="female">女性</option>
-            </select>
+            <div class="selector-label">你的角色</div>
+            <div class="selector-dropdowns-inline">
+              <!-- 性别下拉 -->
+              <div class="custom-dropdown" id="gender-dropdown">
+                <div class="dropdown-trigger" onclick="toggleDropdown('gender-dropdown')">
+                  <span class="dropdown-value">男性</span>
+                  <span class="dropdown-arrow">▼</span>
+                </div>
+                <div class="dropdown-menu">
+                  <div class="dropdown-option selected" data-value="male" onclick="selectDropdownOption('gender-dropdown', 'male', '男性')">男性</div>
+                  <div class="dropdown-option" data-value="female" onclick="selectDropdownOption('gender-dropdown', 'female', '女性')">女性</div>
+                </div>
+              </div>
+              <!-- 服装下拉 -->
+              <div class="custom-dropdown" id="style-dropdown">
+                <div class="dropdown-trigger" onclick="toggleDropdown('style-dropdown')">
+                  <span class="dropdown-value">休闲</span>
+                  <span class="dropdown-arrow">▼</span>
+                </div>
+                <div class="dropdown-menu">
+                  <div class="dropdown-option selected" data-value="young" onclick="selectDropdownOption('style-dropdown', 'young', '休闲')">休闲</div>
+                  <div class="dropdown-option" data-value="student" onclick="selectDropdownOption('style-dropdown', 'student', '校服')">校服</div>
+                  <div class="dropdown-option" data-value="worker" onclick="selectDropdownOption('style-dropdown', 'worker', '西装')">西装</div>
+                </div>
+              </div>
+            </div>
           </div>
+
+          <!-- VS徽章 -->
+          <div class="vs-badge">VS</div>
+
+          <!-- 情绪选择器组 -->
           <div class="selector-group">
-            <label for="style-select">服装</label>
-            <select id="style-select" onchange="updateCharacterFromSelectors()">
-              <option value="young">休闲活泼</option>
-              <option value="student">校服学生</option>
-              <option value="worker">西装职场</option>
-            </select>
+            <div class="selector-label">对手情绪</div>
+            <div class="selector-dropdowns-inline">
+              <!-- 情绪下拉 -->
+              <div class="custom-dropdown" id="emotion-dropdown">
+                <div class="dropdown-trigger" onclick="toggleDropdown('emotion-dropdown')">
+                  <span class="dropdown-value">沮丧</span>
+                  <span class="dropdown-arrow">▼</span>
+                </div>
+                <div class="dropdown-menu">
+                  <div class="dropdown-option selected" data-value="sadness" onclick="selectDropdownOption('emotion-dropdown', 'sadness', '沮丧')">沮丧</div>
+                  <div class="dropdown-option" data-value="fear" onclick="selectDropdownOption('emotion-dropdown', 'fear', '恐惧')">恐惧</div>
+                  <div class="dropdown-option" data-value="anger" onclick="selectDropdownOption('emotion-dropdown', 'anger', '愤怒')">愤怒</div>
+                  <div class="dropdown-option" data-value="jealousy" onclick="selectDropdownOption('emotion-dropdown', 'jealousy', '嫉妒')">嫉妒</div>
+                  <div class="dropdown-option" data-value="anxiety" onclick="selectDropdownOption('emotion-dropdown', 'anxiety', '焦虑')">焦虑</div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -89,34 +127,14 @@
         <div class="preview-row">
           <!-- 角色预览 -->
           <div class="preview-box character-preview-box">
-            <div class="preview-label">你的角色</div>
             <div class="preview-large" id="character-preview-large"></div>
-            <div class="name-input-group">
-              <input type="text" id="character-name-input" placeholder="角色昵称" maxlength="10">
-            </div>
+            <input type="text" id="character-name-input" placeholder="角色昵称" maxlength="10">
           </div>
-
-          <!-- VS徽章 -->
-          <div class="vs-badge">VS</div>
 
           <!-- 情绪预览 -->
           <div class="preview-box emotion-preview-box">
-            <div class="preview-label">对手情绪</div>
-            <div class="selector-group emotion-selector">
-              <select id="emotion-select" onchange="updateEmotionPreview()">
-                <option value="sadness">沮丧</option>
-                <option value="shame">羞耻</option>
-                <option value="fear">恐惧</option>
-                <option value="anger">愤怒</option>
-                <option value="jealousy">嫉妒</option>
-                <option value="anxiety">焦虑</option>
-              </select>
-            </div>
-            <div class="preview-large" id="emotion-preview-large"></div>
-            <div class="name-input-group">
-              <input type="text" id="emotion-name-input" placeholder="情绪名称" maxlength="10">
-            </div>
-            <div class="difficulty-info-small" id="difficulty-text">100次点击 · 无时间限制</div>
+            <div class="preview-large emotion-preview-large" id="emotion-preview-large"></div>
+            <input type="text" id="emotion-name-input" placeholder="情绪名称" maxlength="10">
           </div>
         </div>
       </main>
@@ -376,6 +394,18 @@
             <span class="stat-value" id="win-rate">0%</span>
             <span class="stat-label">胜率</span>
           </div>
+        </div>
+
+        <!-- 胜率饼图 -->
+        <div class="chart-section">
+          <h3 class="section-label">胜率分布</h3>
+          <canvas id="win-rate-chart" width="150" height="150"></canvas>
+        </div>
+
+        <!-- 情绪战斗次数柱状图 -->
+        <div class="chart-section">
+          <h3 class="section-label">情绪战斗次数</h3>
+          <canvas id="emotion-battle-chart" width="280" height="100"></canvas>
         </div>
 
         <!-- 情绪胜率统计 -->

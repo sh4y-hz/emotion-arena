@@ -3,6 +3,15 @@
  * 页面路由和全局控制
  */
 
+// 情绪定义（用于预览绘制，补充phaser-game.js中的EMOTIONS）
+const EMOTIONS_PREVIEW = {
+  sadness: { name: '沮丧', color: 0x3498db },
+  fear: { name: '恐惧', color: 0x95a5a6 },
+  anger: { name: '愤怒', color: 0xe74c3c },
+  jealousy: { name: '嫉妒', color: 0x27ae60 },
+  anxiety: { name: '焦虑', color: 0xf39c12 }
+};
+
 // 当前选中的角色和情绪
 let selectedCharacter = 'boy_young';
 let selectedEmotion = 'sadness';
@@ -18,19 +27,41 @@ let selectedJournalTag = null;
 let currentBattleResult = null;
 
 /**
- * 页面路由系统
+ * 页面路由系统（带过渡动画）
  */
 function showPage(pageId) {
-  // 隐藏所有页面
-  document.querySelectorAll('.page').forEach(page => {
-    page.classList.remove('active');
-  });
-
-  // 显示目标页面
+  const currentPage = document.querySelector('.page.active');
   const targetPage = document.getElementById('page-' + pageId);
-  if (targetPage) {
-    targetPage.classList.add('active');
+
+  if (!targetPage || currentPage === targetPage) return;
+
+  // 过渡动画时长
+  const transitionDuration = 300; // 0.3秒
+
+  // 1. 当前页面淡出
+  if (currentPage) {
+    currentPage.classList.add('fade-out');
   }
+
+  // 2. 显示目标页面（暗模式）
+  targetPage.classList.add('fade-in');
+
+  // 3. transitionDuration后完成过渡
+  setTimeout(() => {
+    // 隐藏当前页面
+    if (currentPage) {
+      currentPage.classList.remove('active', 'fade-out');
+    }
+
+    // 显示目标页面并渐入
+    targetPage.classList.remove('fade-in');
+    targetPage.classList.add('active', 'fade-in-active');
+
+    // 4. 渐入完成后移除动画类
+    setTimeout(() => {
+      targetPage.classList.remove('fade-in-active');
+    }, transitionDuration);
+  }, transitionDuration);
 
   // 页面初始化
   switch (pageId) {
@@ -114,20 +145,37 @@ function initSelectPage() {
   selectedCharacter = settings.selectedCharacter || 'boy_young';
   selectedEmotion = settings.selectedEmotion || 'sadness';
 
-  // 设置下拉选择器的初始值
-  const genderSelect = document.getElementById('gender-select');
-  const styleSelect = document.getElementById('style-select');
-  const emotionSelect = document.getElementById('emotion-select');
+  // 根据当前角色解析性别和服装
+  const { gender, style } = getCharacterSelectors(selectedCharacter);
+  selectedGender = gender;
+  selectedStyle = style;
 
-  if (genderSelect && styleSelect) {
-    // 根据当前角色设置下拉值
-    const { gender, style } = getCharacterSelectors(selectedCharacter);
-    genderSelect.value = gender;
-    styleSelect.value = style;
+  // 更新下拉组件的显示值
+  const genderDropdown = document.getElementById('gender-dropdown');
+  if (genderDropdown) {
+    const genderLabel = gender === 'male' ? '男性' : '女性';
+    genderDropdown.querySelector('.dropdown-value').textContent = genderLabel;
+    genderDropdown.querySelectorAll('.dropdown-option').forEach(opt => {
+      opt.classList.toggle('selected', opt.dataset.value === gender);
+    });
   }
 
-  if (emotionSelect) {
-    emotionSelect.value = selectedEmotion;
+  const styleDropdown = document.getElementById('style-dropdown');
+  if (styleDropdown) {
+    const styleLabels = { 'young': '休闲', 'student': '校服', 'worker': '西装' };
+    styleDropdown.querySelector('.dropdown-value').textContent = styleLabels[style];
+    styleDropdown.querySelectorAll('.dropdown-option').forEach(opt => {
+      opt.classList.toggle('selected', opt.dataset.value === style);
+    });
+  }
+
+  const emotionDropdown = document.getElementById('emotion-dropdown');
+  if (emotionDropdown) {
+    const emotionLabels = { 'sadness': '沮丧', 'fear': '恐惧', 'anger': '愤怒', 'jealousy': '嫉妒', 'anxiety': '焦虑' };
+    emotionDropdown.querySelector('.dropdown-value').textContent = emotionLabels[selectedEmotion];
+    emotionDropdown.querySelectorAll('.dropdown-option').forEach(opt => {
+      opt.classList.toggle('selected', opt.dataset.value === selectedEmotion);
+    });
   }
 
   // 绘制预览
@@ -165,35 +213,92 @@ function getCharacterIdFromSelectors(gender, style) {
   return mapping[gender + '_' + style] || 'boy_young';
 }
 
+/* ===== 自定义下拉组件函数 ===== */
+
+// 存储当前选择的值
+let selectedGender = 'male';
+let selectedStyle = 'young';
+// selectedEmotion 已经在文件开头声明了
+
 /**
- * 从选择器更新角色预览
+ * 打开/关闭下拉菜单
  */
-function updateCharacterFromSelectors() {
-  const genderSelect = document.getElementById('gender-select');
-  const styleSelect = document.getElementById('style-select');
+function toggleDropdown(dropdownId) {
+  const dropdown = document.getElementById(dropdownId);
+  if (!dropdown) return;
 
-  if (genderSelect && styleSelect) {
-    selectedCharacter = getCharacterIdFromSelectors(genderSelect.value, styleSelect.value);
-    drawLargeCharacterPreview();
+  // 关闭其他下拉菜单
+  document.querySelectorAll('.custom-dropdown.open').forEach(d => {
+    if (d.id !== dropdownId) {
+      d.classList.remove('open');
+    }
+  });
 
-    // 保存选择
-    Storage.saveSettings({ selectedCharacter: selectedCharacter });
-  }
+  dropdown.classList.toggle('open');
 }
 
 /**
- * 从选择器更新情绪预览
+ * 选择下拉选项
  */
-function updateEmotionPreview() {
-  const emotionSelect = document.getElementById('emotion-select');
-  if (emotionSelect) {
-    selectedEmotion = emotionSelect.value;
+function selectDropdownOption(dropdownId, value, label) {
+  const dropdown = document.getElementById(dropdownId);
+  if (!dropdown) return;
+
+  // 更新显示值
+  const valueSpan = dropdown.querySelector('.dropdown-value');
+  if (valueSpan) {
+    valueSpan.textContent = label;
+  }
+
+  // 更新选中状态
+  dropdown.querySelectorAll('.dropdown-option').forEach(opt => {
+    opt.classList.toggle('selected', opt.dataset.value === value);
+  });
+
+  // 关闭下拉菜单
+  dropdown.classList.remove('open');
+
+  // 根据下拉类型更新预览
+  if (dropdownId === 'gender-dropdown') {
+    selectedGender = value;
+    updateCharacterFromDropdowns();
+  } else if (dropdownId === 'style-dropdown') {
+    selectedStyle = value;
+    updateCharacterFromDropdowns();
+  } else if (dropdownId === 'emotion-dropdown') {
+    selectedEmotion = value;
     drawLargeEmotionPreview();
-
-    // 保存选择
-    Storage.saveSettings({ selectedEmotion: selectedEmotion });
   }
 }
+
+/**
+ * 从下拉组件更新角色预览
+ */
+function updateCharacterFromDropdowns() {
+  selectedCharacter = getCharacterIdFromSelectors(selectedGender, selectedStyle);
+  drawLargeCharacterPreview();
+  Storage.saveSettings({ selectedCharacter: selectedCharacter });
+}
+
+/**
+ * 从下拉组件开始战斗
+ */
+function startBattleFromSelectors() {
+  const characterName = document.getElementById('character-name-input')?.value || '';
+  const emotionName = document.getElementById('emotion-name-input')?.value || '';
+
+  startPhaserGame(selectedCharacter, selectedEmotion, characterName, emotionName);
+  showPage('battle');
+}
+
+// 点击页面其他地方关闭下拉菜单
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.custom-dropdown')) {
+    document.querySelectorAll('.custom-dropdown.open').forEach(d => {
+      d.classList.remove('open');
+    });
+  }
+});
 
 /**
  * 绘制大角色预览
@@ -204,18 +309,17 @@ function drawLargeCharacterPreview() {
 
   previewEl.innerHTML = '';
 
-  const char = CHARACTERS[selectedCharacter];
   const canvas = document.createElement('canvas');
-  canvas.width = 80;
-  canvas.height = 120;
+  canvas.width = 120;
+  canvas.height = 220;
   canvas.style.width = '100%';
   canvas.style.height = '100%';
 
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
 
-  // 绘制角色
-  drawSimpleCharacter(ctx, selectedCharacter, 40, 110, 'idle');
+  // 绘制角色（放大，位置调整到容器底部）
+  drawSimpleCharacter(ctx, selectedCharacter, 60, 210, 'idle');
 
   previewEl.appendChild(canvas);
 }
@@ -230,29 +334,18 @@ function drawLargeEmotionPreview() {
   previewEl.innerHTML = '';
 
   const canvas = document.createElement('canvas');
-  canvas.width = 80;
-  canvas.height = 80;
+  canvas.width = 120;
+  canvas.height = 220;
   canvas.style.width = '100%';
   canvas.style.height = '100%';
 
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
 
-  // 绘制情绪
-  drawSimpleEmotion(ctx, selectedEmotion, 40, 40, 'idle');
+  // 绘制情绪（位置调整到容器底部）
+  drawSimpleEmotion(ctx, selectedEmotion, 60, 180, 'idle');
 
   previewEl.appendChild(canvas);
-}
-
-/**
- * 从选择器开始战斗
- */
-function startBattleFromSelectors() {
-  const characterName = document.getElementById('character-name-input')?.value || '';
-  const emotionName = document.getElementById('emotion-name-input')?.value || '';
-
-  startPhaserGame(selectedCharacter, selectedEmotion, characterName, emotionName);
-  showPage('battle');
 }
 
 /**
@@ -284,7 +377,7 @@ function drawEmotionPreviews() {
  * 简化版角色绘制（用于预览）
  */
 function drawSimpleCharacter(ctx, charId, x, y, state) {
-  const char = CHARACTERS[charId];
+  const char = (window.CHARACTERS && window.CHARACTERS[charId]) || null;
   if (!char) return;
 
   const colors = char.colors;
@@ -420,7 +513,7 @@ function drawSimpleCharacter(ctx, charId, x, y, state) {
  * 简化版情绪绘制（用于预览）
  */
 function drawSimpleEmotion(ctx, emotionId, x, y, state) {
-  const emotion = EMOTIONS[emotionId];
+  const emotion = EMOTIONS_PREVIEW[emotionId] || (window.EMOTIONS && window.EMOTIONS[emotionId]);
   if (!emotion) return;
 
   const color = emotion.color;
@@ -494,7 +587,7 @@ function updateEmotionSelection(emotionId) {
  * 更新难度信息
  */
 function updateDifficultyInfo() {
-  const emotion = EMOTIONS[selectedEmotion];
+  const emotion = window.EMOTIONS ? window.EMOTIONS[selectedEmotion] : EMOTIONS_PREVIEW[selectedEmotion];
   const textEl = document.getElementById('difficulty-text');
 
   if (emotion && textEl) {
@@ -579,10 +672,17 @@ function escapeBattle() {
  */
 function renderResult(result, newAchievements) {
   const contentEl = document.getElementById('result-content');
-  const encouragementEl = document.getElementById('encouragement-text');
   const achievementEl = document.getElementById('achievement-unlock');
+  const pageContent = document.querySelector('#page-result .page-content');
 
   if (!contentEl) return;
+
+  // 添加过渡动画覆盖层（背景渐变）
+  if (pageContent && !pageContent.querySelector('.result-transition-overlay')) {
+    const overlay = document.createElement('div');
+    overlay.className = 'result-transition-overlay';
+    pageContent.insertBefore(overlay, pageContent.firstChild);
+  }
 
   // 结果标题
   let titleClass = '';
@@ -604,44 +704,43 @@ function renderResult(result, newAchievements) {
   }
 
   // 情绪名称
-  const emotionName = EMOTIONS[result.emotion]?.name || result.emotion;
-
-  contentEl.innerHTML = `
-    <div class="result-icon">${icon}</div>
-    <h2 class="result-title ${titleClass}">${titleText}</h2>
-    <div class="result-stats">
-      <p>用时 ${result.time.toFixed(1)} 秒</p>
-      <p>点击次数：${result.clicks} 次</p>
-      <p>对手：${emotionName}</p>
-    </div>
-  `;
+  const emotionName = (window.EMOTIONS && window.EMOTIONS[result.emotion]?.name) || EMOTIONS_PREVIEW[result.emotion]?.name || result.emotion;
 
   // 鼓励/安慰语句
   const encouragements = {
     victory: [
-      '你战胜了' + emotionName + '，真棒！每一次面对都是成长！',
-      '太厉害了！' + emotionName + '被你打败了！',
-      emotionName + '逃跑了！你是最棒的！',
-      '闪电般的速度！你的勇气无可阻挡！'
+      '太厉害了！',
+      '真棒！',
+      '完美！',
+      '无敌！'
     ],
     defeat: [
-      '没关系，下次试着更快面对它！',
-      '别灰心，每一场战斗都是练习！',
-      '情绪有时候很强大，但你更强大！'
+      '没关系',
+      '别灰心',
+      '下次加油'
     ],
     escape: [
-      '选择暂时逃避也是一种智慧。',
-      '休息一下，下次再来！',
-      '接纳自己的情绪，也是一种勇气。'
+      '明智选择',
+      '休息一下',
+      '下次再来'
     ]
   };
 
   const messages = encouragements[result.result];
   const randomMessage = messages[Math.floor(Math.random() * messages.length)];
 
-  if (encouragementEl) {
-    encouragementEl.textContent = randomMessage;
-  }
+  contentEl.innerHTML = `
+    <div class="result-icon">${icon}</div>
+    <div class="result-header-row">
+      <h2 class="result-title ${titleClass}">${titleText}</h2>
+      <span class="result-comment">${randomMessage}</span>
+    </div>
+    <div class="result-stats-row">
+      <span>用时 ${result.time.toFixed(1)} 秒</span>
+      <span>点击 ${result.clicks} 次</span>
+      <span>对手 ${emotionName}</span>
+    </div>
+  `;
 
   // 显示解锁的成就
   if (achievementEl && newAchievements.length > 0) {
@@ -803,7 +902,7 @@ function renderHistoryList() {
   }
 
   listEl.innerHTML = battles.map(battle => {
-    const emotionName = EMOTIONS[battle.emotion]?.name || battle.emotion;
+    const emotionName = (window.EMOTIONS && window.EMOTIONS[battle.emotion]?.name) || EMOTIONS_PREVIEW[battle.emotion]?.name || battle.emotion;
     let resultClass = '';
     let resultText = '';
 
@@ -1078,6 +1177,9 @@ window.startBattle = startBattle;
 window.handleAttackClick = handleAttackClick;
 window.useUltimate = useUltimate;
 window.escapeBattle = escapeBattle;
+window.toggleDropdown = toggleDropdown;
+window.selectDropdownOption = selectDropdownOption;
+window.startBattleFromSelectors = startBattleFromSelectors;
 window.toggleSound = toggleSound;
 window.toggleVibration = toggleVibration;
 window.saveSettings = saveSettings;
