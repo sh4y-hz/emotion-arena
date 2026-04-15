@@ -35,20 +35,24 @@
       </div>
 
       <footer class="page-footer">
-        <!-- 6个按钮：三行布局 -->
-        <nav class="btn-grid btn-grid-6" aria-label="主导航">
-          <button class="btn btn-primary" onclick="showPage('select')">
-            <span class="btn-text">🎮 开始游戏</span>
-          </button>
-          <button class="btn btn-secondary" onclick="showPage('stats')">
-            <span class="btn-text">📊 战斗统计</span>
-          </button>
-          <button class="btn btn-secondary" onclick="showPage('settings')">
-            <span class="btn-text">⚙️ 游戏设置</span>
-          </button>
-          <button class="btn btn-secondary" onclick="showPage('achievements')">
-            <span class="btn-text">🏆 成就展示</span>
-          </button>
+        <!-- 首页按钮布局：开始游戏居中拉长，其他三个按钮第二行左对齐 -->
+        <nav class="btn-grid btn-grid-home" aria-label="主导航">
+          <div class="btn-row-main">
+            <button class="btn btn-primary btn-wide" onclick="showPage('select')">
+              <span class="btn-text">🎮 开始游戏</span>
+            </button>
+          </div>
+          <div class="btn-row-secondary">
+            <button class="btn btn-secondary" onclick="showPage('stats')">
+              <span class="btn-text">📊 战斗统计</span>
+            </button>
+            <button class="btn btn-secondary" onclick="showPage('settings')">
+              <span class="btn-text">⚙️ 游戏设置</span>
+            </button>
+            <button class="btn btn-secondary" onclick="showPage('achievements')">
+              <span class="btn-text">🏆 成就展示</span>
+            </button>
+          </div>
         </nav>
       </footer>
     </section>

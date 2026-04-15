@@ -356,6 +356,41 @@ canvas,
   max-width: 500px;
 }
 
+/* 首页按钮布局：开始游戏居中拉长，其他三个按钮第二行左对齐 */
+.btn-grid-home {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  width: 100%;
+  max-width: 500px;
+}
+
+.btn-row-main {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.btn-row-main .btn-wide {
+  width: 100%;
+  max-width: 350px;
+}
+
+.btn-row-secondary {
+  display: flex;
+  justify-content: center;
+  gap: var(--spacing-md);
+  width: 100%;
+  max-width: 350px;
+  /* 居中后自然与第一行对齐 */
+  margin: 0 auto;
+}
+
+.btn-row-secondary .btn {
+  flex: 1;
+  min-width: 80px;
+}
+
 /* 1个按钮：居中 */
 .btn-grid-1 {
   grid-template-columns: 1fr;
